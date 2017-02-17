@@ -46,29 +46,32 @@ class TestHALProlog (unittest.TestCase):
         self.parser = PrologParser()
         self.rt     = PrologRuntime(self.db)
 
-    @unittest.skip("temporarily disabled")
+    # @unittest.skip("temporarily disabled")
     def test_parse_line_clauses(self):
 
         line = 'time_span(TE) :- date_time_stamp(+(D, 1.0)).'
 
         tree = self.parser.parse_line_clauses(line)
         logging.debug (unicode(tree[0].body))
-        self.assertEqual (len(tree[0].body), 1)
+        self.assertEqual (tree[0].body.name, 'date_time_stamp')
+        self.assertEqual (tree[0].head.name, 'time_span')
 
         line = 'time_span(tomorrow, TS, TE) :- context(currentTime, T), stamp_date_time(T, date(Y, M, D, H, Mn, S, "local")), date_time_stamp(date(Y, M, +(D, 1.0), 0.0, 0.0, 0.0, "local"), TS), date_time_stamp(date(Y, M, +(D, 1.0), 23.0, 59.0, 59.0, "local"), TE).'
 
         tree = self.parser.parse_line_clauses(line)
         logging.debug (unicode(tree[0].body))
-        self.assertEqual (len(tree[0].body), 4)
+        self.assertEqual (tree[0].head.name, 'time_span')
+        self.assertEqual (tree[0].body.name, 'and')
+        self.assertEqual (len(tree[0].body.args), 4)
 
-    @unittest.skip("temporarily disabled")
+    # @unittest.skip("temporarily disabled")
     def test_kb1(self):
 
-        self.db.clear_module('kb1')
+        self.db.clear_module('unittests')
 
         self.assertEqual (len(self.db.lookup('party')), 0)
 
-        self.parser.compile_file('samples/kb1.pl', 'kb1', self.db)
+        self.parser.compile_file('samples/kb1.pl', 'unittests', self.db)
 
         self.assertEqual (len(self.db.lookup('party')), 1)
 
@@ -91,13 +94,23 @@ class TestHALProlog (unittest.TestCase):
         self.assertEqual (len(solutions), 0)
 
     # @unittest.skip("temporarily disabled")
+    def test_parse_to_string(self):
+
+        line = u'time_span(c, X, Y) :- p1(c), p2(X, Y); p3(c); p4.'
+
+        tree = self.parser.parse_line_clauses(line)
+        logging.debug (unicode(tree[0].body))
+        self.assertEqual (unicode(tree[0]), line)
+
+
+    # @unittest.skip("temporarily disabled")
     def test_or(self):
 
-        self.db.clear_module('or')
+        self.db.clear_module('unittests')
 
-        self.parser.compile_file('samples/or_test.pl', 'or', self.db)
+        self.parser.compile_file('samples/or_test.pl', 'unittests', self.db)
 
-        self.assertEqual (len(self.db.lookup('party')), 1)
+        # self.rt.set_trace(True)
 
         clause = self.parser.parse_line_clause_body('woman(X)')
         logging.debug('clause: %s' % clause)
@@ -109,10 +122,7 @@ class TestHALProlog (unittest.TestCase):
         logging.debug('clause: %s' % clause)
         solutions = self.rt.search(clause)
         logging.debug('solutions: %s' % repr(solutions))
-        self.assertEqual (len(solutions), 6)
-
-
-
+        self.assertEqual (len(solutions), 8)
 
 if __name__ == "__main__":
 

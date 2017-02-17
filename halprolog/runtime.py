@@ -54,15 +54,33 @@ binary_operators = {'+': prolog_binary_add,
 
 class PrologGoal:
 
-    def __init__ (self, clause, parent=None, env={}) :
+    def __init__ (self, head, terms, parent=None, env={}) :
 
-        self.clause = clause
+        assert type(terms) is list
+
+        self.head   = head
+        self.terms  = terms
         self.parent = parent
         self.env    = copy.deepcopy(env)
         self.inx    = 0      # start search with 1st subgoal
 
+    def __unicode__ (self):
+
+        res = u'goal %s ' % self.head  
+        for i, t in enumerate(self.terms):
+            if i == self.inx:
+                 res += u"**"
+            res += unicode(t) + u' '
+
+        res += u'env=%s' % unicode(self.env)
+
+        return res
+
     def __str__ (self) :
-        return "Goal clause=%s inx=%d env=%s" % (self.clause, self.inx, self.env)
+        return unicode(self).encode('utf8')
+
+    def __repr__ (self):
+        return 'PrologGoal(%s)' % str(self)
 
     def get_depth (self):
         if not self.parent:
@@ -251,18 +269,14 @@ class PrologRuntime(object):
         if not self.trace:
             return
 
+        # logging.debug ('label: %s, goal: %s' % (label, unicode(goal)))
+
         depth = goal.get_depth()
-        ind = depth * '  ' + len(label) * ' '
+        # ind = depth * '  ' + len(label) * ' '
 
-        if goal.inx < len(goal.clause.body):
-            print u"%s %s: %s" % (depth*'  ', label, unicode(goal.clause.body[goal.inx]))
-            print u"%s : %s" % (ind, unicode(goal.clause))
-        else:
-            print u"%s %s: %s" % (depth*'  ', label, unicode(goal.clause))
-
-        print "%s : %s" % (ind, repr(goal.env))
-
-
+        logging.info(u"%s %s: %s" % (depth*'  ', label, unicode(goal)))
+       
+        
     def _trace_fn (self, label, env):
 
         if not self.trace:
@@ -273,7 +287,12 @@ class PrologRuntime(object):
 
     def search (self, clause):
 
-        queue     = [ PrologGoal (clause) ]
+        if clause.body.name == 'and':
+            terms = clause.body.args
+        else:
+            terms = [ clause.body ]
+
+        queue     = [ PrologGoal (clause.head, terms) ]
         solutions = []
 
         while queue :
@@ -282,22 +301,22 @@ class PrologRuntime(object):
             self._trace ('CONSIDER', g)
 
             # logging.debug ('g=%s' % str(g))
-            if g.inx >= len(g.clause.body) :        # Is this one finished?
+            if g.inx >= len(g.terms) :        # Is this one finished?
                 self._trace ('SUCCESS ', g)
                 # logging.debug ('finished: ' + str(g))
                 if g.parent == None :               # Yes. Our original goal?
                     solutions.append(g.env)         # Record solution
                     continue
                 parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
-                self._unify (g.clause.head, g.env,
-                             parent.clause.body[parent.inx], parent.env)
+                self._unify (g.head, g.env,
+                             parent.terms[parent.inx], parent.env)
                 parent.inx = parent.inx+1           # advance to next goal in body
-                queue.insert(0,parent)              # let it wait its turn
+                queue.insert(0, parent)             # let it wait its turn
                 # logging.debug ("queue: %s" % str(parent))
                 continue
 
             # No. more to do with this goal.
-            pred = g.clause.body[g.inx]             # What we want to solve
+            pred = g.terms[g.inx]                   # what we want to solve
 
             name = pred.name
             if name in ['is', 'cut', 'fail'] :
@@ -341,12 +360,41 @@ class PrologRuntime(object):
                 if len(clause.head.args) != len(pred.args): 
                     continue
 
-                child = PrologGoal(clause, g)       # A possible subgoal
+                # logging.debug('clause: %s' % clause)
 
-                ans = self._unify (pred, g.env, clause.head, child.env)
-                if ans:                             # if unifies, queue it up
-                    queue.insert(0, child)
-                    # logging.debug ("Queue %s" % str(child))
+                # queue up subgoals, take and/or into account:
+
+                children = []
+
+                if clause.body:
+                
+                    if clause.body.name == 'or':
+
+                        # logging.debug ('   or clause detected.')
+
+                        for subgoal in clause.body.args:
+
+                            # logging.debug ('    subgoal: %s' % subgoal)
+
+                            if subgoal.name == 'and':
+                                children.append( PrologGoal(clause.head, subgoal.args, g) )
+                            else:
+                                children.append( PrologGoal(clause.head, [subgoal], g) )
+                    else:
+                        if clause.body.name == 'and':
+                            children.append(PrologGoal(clause.head, clause.body.args, g))
+                        else:
+                            children.append(PrologGoal(clause.head, [clause.body], g))
+                else:
+                    children.append(PrologGoal(clause.head, [], g))
+
+                # logging.debug('   children: %s' % children)
+
+                for child in children:
+                    ans = self._unify (pred, g.env, clause.head, child.env)
+                    if ans:                             # if unifies, queue it up
+                        queue.insert(0, child)
+                        # logging.debug ("Queue %s" % str(child))
 
         return solutions
 

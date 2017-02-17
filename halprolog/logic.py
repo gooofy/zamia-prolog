@@ -216,13 +216,17 @@ class Predicate:
         self.uri   = uri 
   
     def __str__(self):
-        if not self.args:
-            return self.name
-        return '%s(%s)' % (self.name, ', '.join(map(str, self.args)))
+        return unicode(self).encode('utf8')
     
     def __unicode__(self):
         if not self.args:
             return self.name
+
+        if self.name == 'or':
+            return u'; '.join(map(unicode, self.args))
+        elif self.name == 'and':
+            return u', '.join(map(unicode, self.args))
+
         return u'%s(%s)' % (self.name, u', '.join(map(unicode, self.args)))
         #return '(' + self.name + ' ' + ' '.join( [str(arg) for arg in self.args]) + ')'
 
@@ -261,17 +265,17 @@ class Clause:
 
     def __init__(self, head, body=None, location=None):
         self.head     = head
-        self.body     = body or []
+        self.body     = body
         self.location = location
 
     def __str__(self):
         if self.body:
-            return u'%s :- %s.' % (str(self.head), ', '.join(map(str, self.body)))
+            return u'%s :- %s.' % (str(self.head), str(self.body))
         return str(self.head) + '.'
 
     def __unicode__(self):
         if self.body:
-            return u'%s :- %s.' % (unicode(self.head), ', '.join(map(unicode, self.body)))
+            return u'%s :- %s.' % (unicode(self.head), unicode(self.body))
         return unicode(self.head) + '.'
 
     def __eq__(self, other):

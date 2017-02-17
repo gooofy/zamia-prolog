@@ -27,9 +27,11 @@
 #
 # clause        ::= relation [ ':-' clause_body ] '.' 
 #
-# clause_body   ::= term { ( ',' | ';' ) term }
-#
 # relation      ::= name [ '(' term { ',' term } ')' ]
+#
+# clause_body   ::= subgoals { ';' subgoals }
+#
+# subgoals      ::= term { ',' term }
 #
 # term          ::= add-term { rel-op add-term }
 #
@@ -474,27 +476,35 @@ class PrologParser(object):
 
         return Predicate (name, args)
 
-    def clause_body(self):
+    def subgoals(self):
 
-        body  = []
+        res = [ self.term() ]
 
-        loc = self.get_location()
-
-        while True:
-            body.append(self.term())
-
-            if self.cur_sym == SYM_SEMICOLON:
-                res.append (Clause (head, body, location=loc))
-                body = []
-
-                loc = self.get_location()
-
-            elif self.cur_sym != SYM_COMMA:
-                break
-
+        while self.cur_sym == SYM_COMMA:
             self.next_sym()
 
-        return body
+            t2 = self.term()
+            res.append(t2)
+
+        if len(res) == 1:
+            return res[0]
+        
+        return Predicate ('and', res)
+
+    def clause_body(self):
+
+        res = [ self.subgoals() ]
+
+        while self.cur_sym == SYM_SEMICOLON:
+            self.next_sym()
+
+            sg2 = self.subgoals()
+            res.append(sg2)
+
+        if len(res) == 1:
+            return res[0]
+
+        return Predicate ('or', res)
 
     def clause(self):
 
@@ -509,8 +519,7 @@ class PrologParser(object):
 
             body = self.clause_body()
 
-            if len(body) > 0:
-                res.append (Clause (head, body, location=loc))
+            res.append (Clause (head, body, location=loc))
 
         else:
             res.append (Clause (head, location=loc))
