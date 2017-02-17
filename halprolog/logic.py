@@ -280,7 +280,7 @@ class Clause:
                 and list(self.body) == list(other.body))
 
 
-class NLPMacroCall:
+class MacroCall:
 
     def __init__(self, name, pred):
         self.name = name
@@ -293,7 +293,7 @@ class NLPMacroCall:
         return unicode(self.name) + u'@' + unicode(self.pred)
 
     def __repr__(self):
-        return 'NLPMacroCall(%s, %s)' % (self.name, self.pred)
+        return 'MacroCall(%s, %s)' % (self.name, self.pred)
 
 #############################################################################
 #

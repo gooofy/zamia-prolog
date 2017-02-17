@@ -25,7 +25,9 @@
 #
 # HAL-PROLOG grammar
 #
-# clause        ::= relation [ ':-' term { ( ',' | ';' ) term } ] '.'
+# clause        ::= relation [ ':-' clause_body ] '.' 
+#
+# clause_body   ::= term { ( ',' | ';' ) term }
 #
 # relation      ::= name [ '(' term { ',' term } ')' ]
 #
@@ -341,7 +343,7 @@ class PrologParser(object):
         pred_name = self.cur_str
         self.next_sym()
 
-        return NLPMacroCall(macro_name, pred_name)
+        return MacroCall(macro_name, pred_name)
 
     def unary_term(self):
 
@@ -484,6 +486,7 @@ class PrologParser(object):
             if self.cur_sym == SYM_SEMICOLON:
                 res.append (Clause (head, body, location=loc))
                 body = []
+
                 loc = self.get_location()
 
             elif self.cur_sym != SYM_COMMA:

@@ -46,7 +46,7 @@ class TestHALProlog (unittest.TestCase):
         self.parser = PrologParser()
         self.rt     = PrologRuntime(self.db)
 
-    # @unittest.skip("temporarily disabled")
+    @unittest.skip("temporarily disabled")
     def test_parse_line_clauses(self):
 
         line = 'time_span(TE) :- date_time_stamp(+(D, 1.0)).'
@@ -61,7 +61,7 @@ class TestHALProlog (unittest.TestCase):
         logging.debug (unicode(tree[0].body))
         self.assertEqual (len(tree[0].body), 4)
 
-    # @unittest.skip("temporarily disabled")
+    @unittest.skip("temporarily disabled")
     def test_kb1(self):
 
         self.db.clear_module('kb1')
@@ -89,6 +89,27 @@ class TestHALProlog (unittest.TestCase):
         solutions = self.rt.search(clause)
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 0)
+
+    # @unittest.skip("temporarily disabled")
+    def test_or(self):
+
+        self.db.clear_module('or')
+
+        self.parser.compile_file('samples/or_test.pl', 'or', self.db)
+
+        self.assertEqual (len(self.db.lookup('party')), 1)
+
+        clause = self.parser.parse_line_clause_body('woman(X)')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 3)
+
+        clause = self.parser.parse_line_clause_body('human(X)')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 6)
 
 
 
