@@ -39,4 +39,5 @@ Author
 
 * Guenter Bartsch <guenter@zamia.org>
 * Chris Meyers.
+* Heiko Schäfer <heiko@schaefer.name>
 
