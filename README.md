@@ -63,6 +63,33 @@ Move top disk from center to right
 Move top disk from left to right
 ```
 
+Accessing Prolog Variables from Python
+--------------------------------------
+
+Set var X from python:
+```python
+clause = parser.parse_line_clause_body('Y is X*X')
+solutions = rt.search(clause, {'X': NumberLiteral(3)})
+```
+
+check number of solutions:
+```python
+print len(solutions)
+```
+output:
+```
+1
+```
+
+access prolog result Y from python:
+```python
+print solutions[0]['Y'].f
+```
+output:
+```
+9
+```
+
 License
 =======
 

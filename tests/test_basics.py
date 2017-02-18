@@ -26,6 +26,7 @@ from nltools import misc
 from halprolog.logicdb import LogicDB
 from halprolog.parser  import PrologParser
 from halprolog.runtime import PrologRuntime
+from halprolog.logic   import *
 
 class TestHALProlog (unittest.TestCase):
 
@@ -123,6 +124,21 @@ class TestHALProlog (unittest.TestCase):
         solutions = self.rt.search(clause)
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 8)
+
+    def test_var_access(self):
+
+        # set var X from python:
+
+        clause = self.parser.parse_line_clause_body('Y is X*X')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {'X': NumberLiteral(3)})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+        # access prolog result Y from python:
+
+        self.assertEqual (solutions[0]['Y'].f, 9)
+
 
 if __name__ == "__main__":
 

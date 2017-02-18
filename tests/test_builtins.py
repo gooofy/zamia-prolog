@@ -59,6 +59,79 @@ class TestHALProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 1)
 
+    def test_arith(self):
+        clause = self.parser.parse_line_clause_body('X is -23')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, -23)
+
+        clause = self.parser.parse_line_clause_body('X is +42')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 42)
+
+        clause = self.parser.parse_line_clause_body('X is 19 + 23')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 42)
+
+        clause = self.parser.parse_line_clause_body('X is 61 - 19')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 42)
+
+        clause = self.parser.parse_line_clause_body('X is 6*7')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 42)
+
+        clause = self.parser.parse_line_clause_body('X is 1764 / 42')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 42)
+
+        clause = self.parser.parse_line_clause_body('X is 85 mod 43')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 42)
+
+    def test_comp(self):
+
+        clause = self.parser.parse_line_clause_body('3>1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 1)
+        clause = self.parser.parse_line_clause_body('1>1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 0)
+
+        clause = self.parser.parse_line_clause_body('3<1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 0)
+        clause = self.parser.parse_line_clause_body('1<1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 0)
+
+        clause = self.parser.parse_line_clause_body('3=<1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 0)
+        clause = self.parser.parse_line_clause_body('1=<1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body('3>=1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 1)
+        clause = self.parser.parse_line_clause_body('1>=1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body('3\\=1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 1)
+        clause = self.parser.parse_line_clause_body('1\\=1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 0)
+
+        clause = self.parser.parse_line_clause_body('3=1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 0)
+        clause = self.parser.parse_line_clause_body('1=1')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 1)
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)

@@ -43,7 +43,7 @@
 #
 # mul-term      ::= unary-term  { mul-op unary-term } 
 #
-# mul-op        ::= '*' | '/' | 'div' | 'rem' | '//' | 'rdiv' | 'gcd' 
+# mul-op        ::= '*' | '/' | 'div' | 'mod'
 #
 # unary-term    ::= [ unary-op ] primary-term  
 #
@@ -69,7 +69,7 @@ from logic import *
 
 REL_OP   = set ([u'=', u'\\=', u'<', u'>', u'=<', u'>=', u'is']) 
 ADD_OP   = set ([u'+', u'-'])
-MUL_OP   = set ([u'*', u'/', u'div', u'rem', u'//', u'rdiv', u'gcd'])
+MUL_OP   = set ([u'*', u'/', u'div', u'mod'])
 UNARY_OP = set ([u'+', u'-'])
 
 NAME_CHARS = set(['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',

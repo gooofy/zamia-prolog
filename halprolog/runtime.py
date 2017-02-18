@@ -48,10 +48,15 @@ unary_operators = {'+': prolog_unary_plus,
 def prolog_binary_add (a,b) : return NumberLiteral(a + b)
 def prolog_binary_sub (a,b) : return NumberLiteral(a - b)
 def prolog_binary_mul (a,b) : return NumberLiteral(a * b)
+def prolog_binary_div (a,b) : return NumberLiteral(a / b)
+def prolog_binary_mod (a,b) : return NumberLiteral(a % b)
 
-binary_operators = {'+': prolog_binary_add, 
-                    '-': prolog_binary_sub, 
-                    '*': prolog_binary_mul}
+binary_operators = {'+'  : prolog_binary_add, 
+                    '-'  : prolog_binary_sub, 
+                    '*'  : prolog_binary_mul,
+                    '/'  : prolog_binary_div,
+                    'mod': prolog_binary_mod,
+                    }
 
 class PrologGoal:
 
@@ -111,8 +116,8 @@ class PrologRuntime(object):
         self.register_builtin('<',               builtin_smaller)
         self.register_builtin('=<',              builtin_smaller_or_equal)
         self.register_builtin('>=',              builtin_larger_or_equal)
-        self.register_builtin('=\\=',            builtin_non_equal)
-        self.register_builtin('=:=',             builtin_equal)
+        self.register_builtin('\\=',             builtin_non_equal)
+        self.register_builtin('=',               builtin_equal)
 
         # strings
 
@@ -323,14 +328,14 @@ class PrologRuntime(object):
         print u"%s %s: %s" % ('              ', label, repr(env))
 
 
-    def search (self, clause):
+    def search (self, clause, env={}):
 
         if clause.body.name == 'and':
             terms = clause.body.args
         else:
             terms = [ clause.body ]
 
-        queue     = [ PrologGoal (clause.head, terms) ]
+        queue     = [ PrologGoal (clause.head, terms, env=env) ]
         solutions = []
 
         while queue :
