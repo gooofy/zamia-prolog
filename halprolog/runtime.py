@@ -31,6 +31,7 @@ import re
 import copy
 
 from logic import *
+from builtins import *
 
 class PrologRuntimeError(Exception):
     def __init__(self, value):
@@ -102,8 +103,45 @@ class PrologRuntime(object):
         self.db                = db
         self.builtins          = {}
         self.builtin_functions = {}
-        self.context_name      = 'test'
         self.trace             = False
+
+        # arithmetic
+
+        self.register_builtin('>',               builtin_larger)
+        self.register_builtin('<',               builtin_smaller)
+        self.register_builtin('=<',              builtin_smaller_or_equal)
+        self.register_builtin('>=',              builtin_larger_or_equal)
+        self.register_builtin('=\\=',            builtin_non_equal)
+        self.register_builtin('=:=',             builtin_equal)
+
+        # strings
+
+        self.register_builtin('sub_string',      builtin_sub_string)
+
+        # time and date
+
+        self.register_builtin('date_time_stamp', builtin_date_time_stamp)
+        self.register_builtin('stamp_date_time', builtin_stamp_date_time)
+        self.register_builtin('get_time',        builtin_get_time)
+
+        # I/O
+
+        self.register_builtin('write',           builtin_write)
+        self.register_builtin('nl',              builtin_nl)
+
+        #
+        # builtin functions
+        #
+
+        self.register_builtin_function ('format_str', builtin_format_str)
+        self.register_builtin_function ('isoformat',  builtin_isoformat)
+
+        # lists
+
+        self.register_builtin_function ('list_max',   builtin_list_max)
+        self.register_builtin_function ('list_min',   builtin_list_min)
+        self.register_builtin_function ('list_sum',   builtin_list_sum)
+        self.register_builtin_function ('list_avg',   builtin_list_avg)
 
     def prolog_eval (self, term, env):      # eval all variables within a term to constants
 

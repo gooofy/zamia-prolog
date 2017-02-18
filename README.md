@@ -24,6 +24,44 @@ Requirements
 * py-nltools
 * SQLAlchemy
 
+Usage
+=====
+
+Compile `hanoi1.pl` example:
+
+```python
+from halprolog.logicdb import LogicDB
+from halprolog.parser  import PrologParser
+
+db_url = 'sqlite:///foo.db'
+db     = LogicDB(db_url)
+parser = PrologParser()
+
+parser.compile_file('samples/hanoi1.pl', 'unittests', db)
+```
+
+now run a sample goal:
+
+```python
+from halprolog.runtime import PrologRuntime
+
+clause = parser.parse_line_clause_body('move(3,left,right,center)')
+rt     = PrologRuntime(db)
+
+solutions = rt.search(clause)
+```
+
+output:
+
+```
+Move top disk from left to right
+Move top disk from left to center
+Move top disk from right to center
+Move top disk from left to right
+Move top disk from center to left
+Move top disk from center to right
+Move top disk from left to right
+```
 
 License
 =======
