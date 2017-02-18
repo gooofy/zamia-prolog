@@ -29,6 +29,7 @@ import pytz # $ pip install pytz
 from tzlocal import get_localzone # $ pip install tzlocal
 
 from logic import *
+from errors import *
 
 def builtin_cmp_op(g, op, rt):
 

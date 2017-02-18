@@ -64,6 +64,7 @@ import copy
 from StringIO import StringIO
 
 from logic import *
+from errors import *
 
 # lexer
 
@@ -98,14 +99,6 @@ SYM_COLON     = 17   # :
 CSTATE_IDLE   = 0
 CSTATE_HEADER = 1
 CSTATE_BODY   = 2
-
-class PrologError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
-    def __unicode__(self):
-        return self.value
 
 class PrologParser(object):
 

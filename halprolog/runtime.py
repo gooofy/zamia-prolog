@@ -32,6 +32,7 @@ import copy
 
 from logic import *
 from builtins import *
+from errors import *
 
 class PrologRuntimeError(Exception):
     def __init__(self, value):
