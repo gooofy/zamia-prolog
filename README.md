@@ -90,6 +90,61 @@ output:
 9
 ```
 
+Custom Python Builtin Predicates
+--------------------------------
+
+To demonstrate how to register custom predicates with the interpreter, we will
+introduce a python builtin to record the moves in our Hanoi example:
+
+```python
+recorded_moves = []
+
+def record_move(g, rt):
+    global recorded_moves
+
+    pred = g.terms[g.inx]
+    args = pred.args
+
+    arg_from  = rt.prolog_eval(args[0], g.env)
+    arg_to    = rt.prolog_eval(args[1], g.env) 
+
+    recorded_moves.append((arg_from, arg_to))
+
+    return True
+
+rt.register_builtin('record_move', record_move)
+
+
+```
+
+now, compile and run the `hanoi2.pl` example:
+
+```python
+parser.compile_file('samples/hanoi2.pl', 'unittests', db)
+clause = parser.parse_line_clause_body('move(3,left,right,center)')
+solutions = rt.search(clause)
+```
+output:
+```
+Move top disk from left to right
+Move top disk from left to center
+Move top disk from right to center
+Move top disk from left to right
+Move top disk from center to left
+Move top disk from center to right
+Move top disk from left to right
+```
+now, check the recorded moves:
+```python
+print len(recorded_moves)
+print repr(recorded_moves)
+```
+output:
+```
+7
+[(Predicate(left), Predicate(right)), (Predicate(left), Predicate(center)), (Predicate(right), Predicate(center)), (Predicate(left), Predicate(right)), (Predicate(center), Predicate(left)), (Predicate(center), Predicate(right)), (Predicate(left), Predicate(right))]
+```
+
 License
 =======
 
