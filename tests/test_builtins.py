@@ -59,6 +59,22 @@ class TestHALProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 1)
 
+    def test_date_time(self):
+
+        clause = self.parser.parse_line_clause_body('get_time(T)')
+        solutions = self.rt.search(clause)
+        self.assertGreater (solutions[0]['T'].f, 10000)
+
+        clause = self.parser.parse_line_clause_body('date_time_stamp(date(2017,2,14,1,2,3,\'local\'), TS), stamp_date_time(TS, date(Y,M,D,H,Mn,S,\'local\'))')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['Y'].f,2017)
+        self.assertEqual (solutions[0]['M'].f,2)
+        self.assertEqual (solutions[0]['D'].f,14)
+        self.assertEqual (solutions[0]['H'].f,1)
+        self.assertEqual (solutions[0]['Mn'].f,2)
+        self.assertEqual (solutions[0]['S'].f,3)
+
+
     def test_arith(self):
         clause = self.parser.parse_line_clause_body('X is -23')
         solutions = self.rt.search(clause)
