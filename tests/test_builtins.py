@@ -59,6 +59,23 @@ class TestHALProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 1)
 
+    def test_lists(self):
+
+        clause = self.parser.parse_line_clause_body('X is []')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions[0]['X'].l), 0)
+
+        clause = self.parser.parse_line_clause_body('L is [1,2,3,4], X is list_sum(L), Y is list_max(L), Z is list_min(L), W is list_avg(L)')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions[0]['L'].l), 4)
+        self.assertEqual (solutions[0]['L'].l[3].f, 4.0)
+
+        self.assertEqual (solutions[0]['X'].f, 10.0)
+        self.assertEqual (solutions[0]['Y'].f, 4.0)
+        self.assertEqual (solutions[0]['Z'].f, 1.0)
+        self.assertEqual (solutions[0]['W'].f, 2.5)
+
+
     def test_strings(self):
 
         clause = self.parser.parse_line_clause_body('X is \'bar\', S is format_str(\'test %d %s foo\', 42, X)')

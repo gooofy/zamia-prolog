@@ -51,7 +51,9 @@
 #
 # macro_call    ::= '@' ( variable | name ) ':' ( variable | name )
 #
-# primary-term  ::= ( variable | number | string | relation | macro_call | '(' term { ',' term } ')' )
+# primary-term  ::= ( variable | number | string | list | relation | macro_call | '(' term { ',' term } ')' )
+#
+# list          ::= '[' [ primary-term ] ( { ',' primary-term } | '|' primary-term ) ']'
 #
 
 import os
@@ -94,6 +96,9 @@ SYM_PERIOD    = 14   # .
 SYM_SEMICOLON = 15   # ;
 SYM_AT        = 16   # @
 SYM_COLON     = 17   # :
+SYM_LBRACKET  = 18   # [
+SYM_RBRACKET  = 19   # ]
+SYM_PIPE      = 20   # |
 
 # structured comments
 CSTATE_IDLE   = 0
@@ -268,6 +273,18 @@ class PrologParser(object):
             self.cur_sym = SYM_AT
             self.next_c()
 
+        elif self.cur_c == u'[':
+            self.cur_sym = SYM_LBRACKET
+            self.next_c()
+
+        elif self.cur_c == u']':
+            self.cur_sym = SYM_RBRACKET
+            self.next_c()
+
+        elif self.cur_c == u'|':
+            self.cur_sym = SYM_PIPE
+            self.next_c()
+
         else:
             self.report_error ("Illegal character: " + repr(self.cur_c))
 
@@ -277,6 +294,32 @@ class PrologParser(object):
     #
     # parser starts here
     #
+
+    def parse_list(self):
+
+        res = ListLiteral([])
+
+        if self.cur_sym != SYM_RBRACKET:
+    
+            res.l.append(self.primary_term())
+
+            # FIXME: implement proper head/tail mechanics
+
+            if self.cur_sym == SYM_PIPE:
+                self.next_sym()
+                res.l.append(self.primary_term())
+
+            else:
+
+                while (self.cur_sym == SYM_COMMA):
+                    self.next_sym()
+                    res.l.append(self.primary_term())
+
+        if self.cur_sym != SYM_RBRACKET:
+            self.report_error ("list: ] expected.")
+        self.next_sym()
+
+        return res
 
     def primary_term(self):
 
@@ -314,6 +357,10 @@ class PrologParser(object):
             if self.cur_sym != SYM_RPAREN:
                 self.report_error ("primary term: ) expected.")
             self.next_sym()
+
+        elif self.cur_sym == SYM_LBRACKET:
+            self.next_sym()
+            res = self.parse_list()
 
         else:
             self.report_error ("primary term: variable / number / string / name / ( expected.")
