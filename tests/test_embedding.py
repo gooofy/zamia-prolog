@@ -47,7 +47,7 @@ def record_move(g, rt):
         
     return True
 
-class TestHALProlog (unittest.TestCase):
+class TestEmbeddings (unittest.TestCase):
 
     def setUp(self):
 

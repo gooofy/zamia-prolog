@@ -27,7 +27,7 @@ from halprolog.logicdb import LogicDB
 from halprolog.parser  import PrologParser
 from halprolog.runtime import PrologRuntime
 
-class TestHALProlog (unittest.TestCase):
+class TestBuiltins (unittest.TestCase):
 
     def setUp(self):
 
