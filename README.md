@@ -1,7 +1,7 @@
 # HAL Prolog
 
-Scalable and embeddable compiler/interpreter for a HAL-Prolog (a Prolog dialect). Stores its knowlegde base in a
-Database via SQLAlchemy - hence the scalability, i.e. the knowlegde base is not limited by the amount of RAM available.
+Scalable and embeddable compiler/interpreter for a HAL-Prolog (a Prolog dialect). Stores its knowledge base in a
+Database via SQLAlchemy - hence the scalability, i.e. the knowledge base is not limited by the amount of RAM available.
 
 HAL Prolog is written in pure python so it can be easily embedded into other python applications. Compiler and runtime
 have interfaces to register custom builtins which can either be evaluated at compile time (called directives in
@@ -143,6 +143,33 @@ output:
 ```
 7
 [(Predicate(left), Predicate(right)), (Predicate(left), Predicate(center)), (Predicate(right), Predicate(center)), (Predicate(left), Predicate(right)), (Predicate(center), Predicate(left)), (Predicate(center), Predicate(right)), (Predicate(left), Predicate(right))]
+```
+
+Custom Compiler Directives
+--------------------------
+
+Besides custom builtins we can also have custom compiler-directives in HAL-Prolog. Directives are evalutated at compile
+time and will not be stored in the database. 
+
+Here is an example: First, register your custom directive:
+
+```python 
+def _custom_directive (module_name, clause, user_data):
+    print "_custom_directive has been called. clause: %s user_data:%s" % (clause, user_data)
+
+parser.register_directive('custom_directive', _custom_directive, None)
+```
+
+now, compile a piece of prolog code that uses the directive:
+
+```python
+parser.parse_line_clauses('custom_directive(abc, 42, \'foo\').')
+
+```
+output:
+```
+_custom_directive has been called. clause: custom_directive(abc, 42.0, "foo"). user_data:None
+[]
 ```
 
 License
