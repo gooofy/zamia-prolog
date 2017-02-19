@@ -96,44 +96,6 @@ class LogicDB(object):
         
         return res
 
-    #
-    # manage stored contexts in db
-    #
-
-    def read_context (self, name, key):
-
-        ctx = self.session.query(model.Context).filter(model.Context.name==name, model.Context.key==key).first()
-        if not ctx:
-            return None
-
-        return self.parser.parse_line_clause_body(ctx.value)
-
-    def write_context (self, name, key, value):
-
-        v = unicode(value)
-
-        ctx = self.session.query(model.Context).filter(model.Context.name==name, model.Context.key==key).first()
-        if not ctx:
-            ctx = model.Context(name=name, key=key, value=v, default_value=v)
-            self.session.add(ctx)
-        else:
-            ctx.value = v
-
-    def set_context_default(self, name, key, value):
-
-        ctx = self.session.query(model.Context).filter(model.Context.name==name, model.Context.key==key).first()
-
-        if not ctx:
-            ctx = model.Context(name=name, key=key, value=value, default_value=value)
-            self.session.add(ctx)
-        else:
-            ctx.default_value = value
-
-    def reset_context(self, name):
-
-        for ctx in self.session.query(model.Context).filter(model.Context.name==name).all():
-            ctx.value = ctx.default_value
-        
 # class LogicMemDB(object):
 # 
 #     def __init__(self):

@@ -331,10 +331,16 @@ class PrologRuntime(object):
 
     def search (self, clause, env={}):
 
-        if clause.body.name == 'and':
-            terms = clause.body.args
+        if clause.body is None:
+            return [{}]
+
+        if isinstance (clause.body, Predicate):
+            if clause.body.name == 'and':
+                terms = clause.body.args
+            else:
+                terms = [ clause.body ]
         else:
-            terms = [ clause.body ]
+            raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
 
         queue     = [ PrologGoal (clause.head, terms, env=env) ]
         solutions = []
