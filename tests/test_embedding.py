@@ -67,7 +67,7 @@ class TestEmbeddings (unittest.TestCase):
         self.rt     = PrologRuntime(self.db)
 
     # @unittest.skip("temporarily disabled")
-    def test_hanoi2(self):
+    def test_custom_builtins(self):
 
         global recorded_moves
 
@@ -87,6 +87,28 @@ class TestEmbeddings (unittest.TestCase):
         self.assertEqual (len(solutions), 1)
 
         self.assertEqual (len(recorded_moves), 7)
+
+    def _custom_directive(self, module_name, clause, user_data):
+        # logging.debug('custom_directive has been run')
+        self.assertEqual (len(clause.head.args), 3)
+        self.assertEqual (unicode(clause.head.args[0]), u'abc')
+        self.assertEqual (clause.head.args[1].f, 42)
+        self.assertEqual (clause.head.args[2].s, u'foo')
+
+        self.directive_mark = True
+
+    # @unittest.skip("temporarily disabled")
+    def test_custom_directives(self):
+
+        self.db.clear_module('unittests')
+
+        self.parser.register_directive('custom_directive', self._custom_directive, None)
+        self.directive_mark = False
+
+        # self.parser.compile_file('samples/dir.pl', 'unittests', self.db)
+        clauses = self.parser.parse_line_clauses('custom_directive(abc, 42, \'foo\').')
+
+        self.assertEqual (self.directive_mark, True)
 
 
 if __name__ == "__main__":

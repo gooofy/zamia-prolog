@@ -559,14 +559,24 @@ class PrologParser(object):
 
             body = self.clause_body()
 
-            res.append (Clause (head, body, location=loc))
+            c = Clause (head, body, location=loc)
 
         else:
-            res.append (Clause (head, location=loc))
+            c = Clause (head, location=loc)
 
         if self.cur_sym != SYM_PERIOD:
             self.report_error ("clause: . expected.")
         self.next_sym()
+
+        # compiler directive?
+
+        if c.head.name in self.directives:
+            f, user_data = self.directives[c.head.name]
+            f(self.module_name, c, user_data)
+
+        else:
+            res.append(c)
+
 
         # logging.debug ('clause: ' + str(res))
 
@@ -576,7 +586,7 @@ class PrologParser(object):
     # high-level interface
     #
 
-    def start (self, prolog_f, prolog_fn, linecnt = 0):
+    def start (self, prolog_f, prolog_fn, linecnt = 0, module_name = None):
 
         self.cur_c        = u' '
         self.cur_sym      = SYM_NONE
@@ -586,6 +596,7 @@ class PrologParser(object):
         self.prolog_f     = prolog_f
         self.prolog_fn    = prolog_fn
         self.linecnt      = linecnt
+        self.module_name  = module_name
 
         self.cstate       = CSTATE_IDLE
         self.comment_pred = None
@@ -606,8 +617,8 @@ class PrologParser(object):
         self.start (StringIO(line), '<str>')
         return self.clause()
 
-    def register_directive(name, f):
-        self.directives[name] = f
+    def register_directive(self, name, f, user_data):
+        self.directives[name] = (f, user_data)
 
     def compile_file (self, filename, module_name, db):
 
@@ -622,7 +633,7 @@ class PrologParser(object):
         # actual parsing starts here
 
         with codecs.open(filename, encoding='utf-8', errors='ignore', mode='r') as f:
-            self.start(f, filename)
+            self.start(f, filename, module_name=module_name)
 
             while self.cur_sym != SYM_EOF:
                 clauses = self.clause()
@@ -630,13 +641,7 @@ class PrologParser(object):
                 for clause in clauses:
                     logging.debug(u"%7d / %7d (%3d%%) > %s" % (self.cur_line, linecnt, self.cur_line * 100 / linecnt, unicode(clause)))
 
-                    # compiler directive?
-
-                    if clause.head.name in self.directives:
-                        self.directives[clause.head.name](module_name, clause)
-
-                    else:
-                        db.store (module_name, clause)
+                    db.store (module_name, clause)
 
                 if self.comment_pred:
 

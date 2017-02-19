@@ -230,6 +230,9 @@ class Clause:
             return u'%s :- %s.' % (unicode(self.head), unicode(self.body))
         return unicode(self.head) + '.'
 
+    def __repr__(self):
+        return u'Clause(' + unicode(self) + u')'
+
     def __eq__(self, other):
         return (isinstance(other, Clause)
                 and self.head == other.head
