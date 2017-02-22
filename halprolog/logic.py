@@ -246,10 +246,10 @@ class MacroCall:
         self.pred = pred
 
     def __str__(self):
-        return str(self.name) + '@' + str(self.pred)
+        return unicode(self).encode('utf8')
 
     def __unicode__(self):
-        return unicode(self.name) + u'@' + unicode(self.pred)
+        return u'@' + unicode(self.name) + u':' + unicode(self.pred)
 
     def __repr__(self):
         return 'MacroCall(%s, %s)' % (self.name, self.pred)
