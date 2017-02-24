@@ -630,6 +630,10 @@ class PrologParser(object):
                 linecnt += 1
         logging.info("%s: %d lines." % (filename, linecnt))
 
+        # remove old predicates of this module from db
+
+        db.clear_module(module_name)
+
         # actual parsing starts here
 
         with codecs.open(filename, encoding='utf-8', errors='ignore', mode='r') as f:
