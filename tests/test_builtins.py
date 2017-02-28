@@ -75,6 +75,13 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['Z'].f, 1.0)
         self.assertEqual (solutions[0]['W'].f, 2.5)
 
+        clause = self.parser.parse_line_clause_body('L is [1,2,3,4], list_contains(L, 2).')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body('L is [1,2,3,4], list_contains(L, 23).')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions), 0)
 
     def test_strings(self):
 
