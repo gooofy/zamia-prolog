@@ -135,6 +135,10 @@ class PrologRuntime(object):
         self.register_builtin('write',           builtin_write)
         self.register_builtin('nl',              builtin_nl)
 
+        # lists
+
+        self.register_builtin('list_contains',   builtin_list_contains)
+
         #
         # builtin functions
         #

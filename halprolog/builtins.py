@@ -222,6 +222,25 @@ def builtin_nl(g, rt):
 
     return True
 
+def builtin_list_contains(g, rt):
+
+    rt._trace_fn ('CALLED BUILTIN list_contains', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('list_contains: 2 args expected.')
+
+    arg_list   = rt.prolog_get_list (args[0], g.env)
+    arg_needle = rt.prolog_eval(args[1], g.env)
+
+    for o in arg_list.l:
+        if o == arg_needle:
+            return True
+
+    return False
+
 #
 # functions
 #
@@ -303,5 +322,4 @@ def builtin_list_avg(pred, env, rt):
 
     assert len(l)>0
     return l_sum / NumberLiteral(float(len(l)))
-
 
