@@ -59,9 +59,11 @@ binary_operators = {'+'  : prolog_binary_add,
                     'mod': prolog_binary_mod,
                     }
 
+builtin_specials = set(['is', 'cut', 'fail', 'not'])
+
 class PrologGoal:
 
-    def __init__ (self, head, terms, parent=None, env={}) :
+    def __init__ (self, head, terms, parent=None, env={}, negate=False) :
 
         assert type(terms) is list
 
@@ -69,11 +71,19 @@ class PrologGoal:
         self.terms  = terms
         self.parent = parent
         self.env    = copy.deepcopy(env)
+        self.negate = negate
         self.inx    = 0      # start search with 1st subgoal
 
     def __unicode__ (self):
+        
+        res = u'!goal ' if self.negate else u'goal '
 
-        res = u'goal %s ' % self.head  
+        if self.head:
+            res += unicode(self.head)
+        else:
+            res += 'TOP'
+        res += ' '
+
         for i, t in enumerate(self.terms):
             if i == self.inx:
                  res += u"**"
@@ -333,6 +343,26 @@ class PrologRuntime(object):
         print u"%s %s: %s" % ('              ', label, repr(env))
 
 
+    def _finish_goal (self, g, succeed):
+
+        succ = not succeed if g.negate else succeed
+
+        if succ:
+            self._trace ('SUCCESS ', g)
+
+            if g.parent == None :                   # Our original goal?
+                self.solutions.append(g.env)        # Record solution
+
+            else: 
+                parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
+                self._unify (g.head, g.env,
+                             parent.terms[parent.inx], parent.env)
+                parent.inx = parent.inx+1           # advance to next goal in body
+                self.queue.insert(0, parent)        # let it wait its turn
+
+        else:
+            self._trace ('FAIL ', g)
+
     def search (self, clause, env={}):
 
         if clause.body is None:
@@ -346,49 +376,46 @@ class PrologRuntime(object):
         else:
             raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
 
-        queue     = [ PrologGoal (clause.head, terms, env=env) ]
-        solutions = []
+        self.queue     = [ PrologGoal (clause.head, terms, env=env) ]
+        self.solutions = []
 
-        while queue :
-            g = queue.pop()                         # Next goal to consider
+        while self.queue :
+            g = self.queue.pop()                         # Next goal to consider
 
             self._trace ('CONSIDER', g)
 
-            # logging.debug ('g=%s' % str(g))
-            if g.inx >= len(g.terms) :        # Is this one finished?
-                self._trace ('SUCCESS ', g)
-                # logging.debug ('finished: ' + str(g))
-                if g.parent == None :               # Yes. Our original goal?
-                    solutions.append(g.env)         # Record solution
-                    continue
-                parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
-                self._unify (g.head, g.env,
-                             parent.terms[parent.inx], parent.env)
-                parent.inx = parent.inx+1           # advance to next goal in body
-                queue.insert(0, parent)             # let it wait its turn
-                # logging.debug ("queue: %s" % str(parent))
+            if g.inx >= len(g.terms) :              # Is this one finished?
+                self._finish_goal (g, True)
                 continue
 
             # No. more to do with this goal.
             pred = g.terms[g.inx]                   # what we want to solve
 
             name = pred.name
-            if name in ['is', 'cut', 'fail'] :
+            if name in builtin_specials:
                 if name == 'is' :
                     ques = self.prolog_eval(pred.args[0], g.env)
                     ans  = self.prolog_eval(pred.args[1], g.env)
 
                     if ques == None :
                         g.env[pred.args[0].name] = ans  # Set variable
-                    elif ques != ans :
-                        self._trace ('FAIL    ', g)
-                        continue                # Mismatch, fail
-                elif name == 'cut' : queue = [] # Zap the competition
+
+                    elif ques != ans :                  # Mismatch, fail
+                        self._finish_goal (g, False)
+                        continue                
+
+                elif name == 'cut' : self.queue = [] # Zap the competition
                 elif name == 'fail':            # Dont succeed
-                    self._trace ('FAIL    ', g)
+                    self._finish_goal (g, False)
                     continue
+
+                elif name == 'not':
+                    # insert negated sub-guoal
+                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, negate=True))
+                    continue
+
                 g.inx = g.inx + 1               # Succeed. resume self.
-                queue.insert(0, g)
+                self.queue.insert(0, g)
                 continue
 
             # builtin predicate ?
@@ -397,9 +424,9 @@ class PrologRuntime(object):
                 if self.builtins[pred.name](g, self):
                     self._trace ('SUCCESS FROM BUILTIN ', g)
                     g.inx = g.inx + 1
-                    queue.insert (0, g)
+                    self.queue.insert (0, g)
                 else:
-                    self._trace ('FAIL FROM BUILTIN ', g)
+                    self._finish_goal (g, False)
                 continue
 
             # Not special. look up in rule database
@@ -447,8 +474,8 @@ class PrologRuntime(object):
                 for child in children:
                     ans = self._unify (pred, g.env, clause.head, child.env)
                     if ans:                             # if unifies, queue it up
-                        queue.insert(0, child)
+                        self.queue.insert(0, child)
                         # logging.debug ("Queue %s" % str(child))
 
-        return solutions
+        return self.solutions
 
