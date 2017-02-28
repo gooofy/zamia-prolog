@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 #
-# Copyright 2015, 2016 Guenter Bartsch
+# Copyright 2015, 2016, 2017 Guenter Bartsch
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-# interactive HAL-PROLOG shell
+# interactive Zamia-Prolog shell
 #
 
 import os
@@ -31,9 +31,9 @@ from optparse import OptionParser
 from StringIO import StringIO
 
 from nltools import misc
-from halprolog.logicdb import LogicDB
-from halprolog.parser  import PrologParser, PrologError
-from halprolog.runtime import PrologRuntime, PrologRuntimeError
+from zamiaprolog.logicdb import LogicDB
+from zamiaprolog.parser  import PrologParser, PrologError
+from zamiaprolog.runtime import PrologRuntime, PrologRuntimeError
 
 # logging.basicConfig(level=logging.DEBUG)
 logging.basicConfig(level=logging.INFO)

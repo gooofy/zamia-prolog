@@ -23,9 +23,9 @@ import logging
 import codecs
 
 from nltools import misc
-from halprolog.logicdb import LogicDB
-from halprolog.parser  import PrologParser
-from halprolog.runtime import PrologRuntime
+from zamiaprolog.logicdb import LogicDB
+from zamiaprolog.parser  import PrologParser
+from zamiaprolog.runtime import PrologRuntime
 
 class TestBuiltins (unittest.TestCase):
 

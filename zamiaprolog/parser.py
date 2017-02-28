@@ -18,12 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-# HAL-PROLOG
-# ----------
+# Zamia-Prolog 
+# ------------
 #
 # parser, scanner
 #
-# HAL-PROLOG grammar
+# Zamia-Prolog grammar
 #
 # clause        ::= relation [ ':-' clause_body ] '.' 
 #

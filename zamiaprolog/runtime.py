@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-# HAL-PROLOG engine
+# Zamia-Prolog engine
 #
 # based on http://openbookproject.net/py4fun/prolog/prolog3.html by Chris Meyers
 #

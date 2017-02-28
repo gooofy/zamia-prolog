@@ -13,7 +13,7 @@
 %    Transfer the n-1 discs from X to peg Y
 
 %
-% this version calls a custom python builtin record_move to demonstrate embedding HAL-Prolog
+% this version calls a custom python builtin record_move to demonstrate embedding Zamia-Prolog
 %
 
 move(1,X,Y,_) :-  

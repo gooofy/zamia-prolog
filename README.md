@@ -1,11 +1,11 @@
-# HAL Prolog
+# Zamia Prolog
 
-Scalable and embeddable compiler/interpreter for a HAL-Prolog (a Prolog dialect). Stores its knowledge base in a
+Scalable and embeddable compiler/interpreter for a Zamia-Prolog (a Prolog dialect). Stores its knowledge base in a
 Database via SQLAlchemy - hence the scalability, i.e. the knowledge base is not limited by the amount of RAM available.
 
-HAL Prolog is written in pure python so it can be easily embedded into other python applications. Compiler and runtime
+Zamia-Prolog is written in pure python so it can be easily embedded into other python applications. Compiler and runtime
 have interfaces to register custom builtins which can either be evaluated at compile time (called directives in
-HAL-Prolog) or at runtime.
+Zamia-Prolog) or at runtime.
 
 The Prolog core is based on http://openbookproject.net/py4fun/prolog/prolog3.html by Chris Meyers.
 
@@ -30,8 +30,8 @@ Usage
 Compile `hanoi1.pl` example:
 
 ```python
-from halprolog.logicdb import LogicDB
-from halprolog.parser  import PrologParser
+from zamiaprolog.logicdb import LogicDB
+from zamiaprolog.parser  import PrologParser
 
 db_url = 'sqlite:///foo.db'
 db     = LogicDB(db_url)
@@ -43,7 +43,7 @@ parser.compile_file('samples/hanoi1.pl', 'unittests', db)
 now run a sample goal:
 
 ```python
-from halprolog.runtime import PrologRuntime
+from zamiaprolog.runtime import PrologRuntime
 
 clause = parser.parse_line_clause_body('move(3,left,right,center)')
 rt     = PrologRuntime(db)
@@ -148,7 +148,7 @@ output:
 Custom Compiler Directives
 --------------------------
 
-Besides custom builtins we can also have custom compiler-directives in HAL-Prolog. Directives are evalutated at compile
+Besides custom builtins we can also have custom compiler-directives in Zamia-Prolog. Directives are evalutated at compile
 time and will not be stored in the database. 
 
 Here is an example: First, register your custom directive:

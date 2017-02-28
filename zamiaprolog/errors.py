@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
-# HAL-PROLOG error classes
+# Zamia-Prolog error classes
 #
 
 class PrologRuntimeError(Exception):
