@@ -345,23 +345,55 @@ class PrologRuntime(object):
 
     def _finish_goal (self, g, succeed):
 
-        succ = not succeed if g.negate else succeed
+        while True:
 
-        if succ:
-            self._trace ('SUCCESS ', g)
+            succ = not succeed if g.negate else succeed
+            
+            if succ:
+                self._trace ('SUCCESS ', g)
 
-            if g.parent == None :                   # Our original goal?
-                self.solutions.append(g.env)        # Record solution
+                if g.parent == None :                   # Our original goal?
+                    self.solutions.append(g.env)        # Record solution
 
-            else: 
-                parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
-                self._unify (g.head, g.env,
-                             parent.terms[parent.inx], parent.env)
-                parent.inx = parent.inx+1           # advance to next goal in body
-                self.queue.insert(0, parent)        # let it wait its turn
+                else: 
+                    parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
+                    self._unify (g.head, g.env,
+                                 parent.terms[parent.inx], parent.env)
+                    parent.inx = parent.inx+1           # advance to next goal in body
+                    self.queue.insert(0, parent)        # let it wait its turn
 
-        else:
-            self._trace ('FAIL ', g)
+                break
+
+            else:
+                self._trace ('FAIL ', g)
+
+                if g.parent == None :                   # Our original goal?
+                    break
+
+                else: 
+                    parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
+                    self._unify (g.head, g.env,
+                                 parent.terms[parent.inx], parent.env)
+                    g = parent
+                    succeed = False
+
+        # succ = not succeed if g.negate else succeed
+
+        # if succ:
+        #     self._trace ('SUCCESS ', g)
+
+        #     if g.parent == None :                   # Our original goal?
+        #         self.solutions.append(g.env)        # Record solution
+
+        #     else: 
+        #         parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
+        #         self._unify (g.head, g.env,
+        #                      parent.terms[parent.inx], parent.env)
+        #         parent.inx = parent.inx+1           # advance to next goal in body
+        #         self.queue.insert(0, parent)        # let it wait its turn
+
+        # else:
+        #     self._trace ('FAIL ', g)
 
     def search (self, clause, env={}):
 
@@ -439,6 +471,7 @@ class PrologRuntime(object):
 
                 else:
                     self._finish_goal (g, False)
+
                 continue
 
             # Not special. look up in rule database

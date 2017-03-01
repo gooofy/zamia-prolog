@@ -28,6 +28,8 @@ from zamiaprolog.parser  import PrologParser
 from zamiaprolog.runtime import PrologRuntime
 from zamiaprolog.logic   import *
 
+UNITTEST_MODULE = 'unittests'
+
 class TestNegation (unittest.TestCase):
 
     def setUp(self):
@@ -47,7 +49,9 @@ class TestNegation (unittest.TestCase):
         self.parser = PrologParser()
         self.rt     = PrologRuntime(self.db)
 
-        # self.rt.set_trace(True)
+        self.db.clear_module(UNITTEST_MODULE)
+
+        self.rt.set_trace(True)
 
     # @unittest.skip("temporarily disabled")
     def test_not_succ(self):
@@ -65,6 +69,40 @@ class TestNegation (unittest.TestCase):
         solutions = self.rt.search(clause, {})
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 0)
+
+    # @unittest.skip("temporarily disabled")
+    def test_chancellors(self):
+
+        self.parser.compile_file('samples/not_test.pl', UNITTEST_MODULE, self.db)
+
+        clause = self.parser.parse_line_clause_body('was_chancellor(helmut_kohl).')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+    # @unittest.skip("temporarily disabled")
+    def test_double_negation(self):
+
+        self.parser.compile_file('samples/not_test.pl', UNITTEST_MODULE, self.db)
+
+        clause = self.parser.parse_line_clause_body('not(not(chancellor(helmut_kohl))).')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body('not(not(chancellor(angela_merkel))).')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body('not(not(chancellor(X))).')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 2)
 
 
 if __name__ == "__main__":
