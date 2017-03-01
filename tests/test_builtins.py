@@ -59,6 +59,7 @@ class TestBuiltins (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 1)
 
+    # @unittest.skip("temporarily disabled")
     def test_lists(self):
 
         clause = self.parser.parse_line_clause_body('X is []')
@@ -83,6 +84,7 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (len(solutions), 0)
 
+    # @unittest.skip("temporarily disabled")
     def test_strings(self):
 
         clause = self.parser.parse_line_clause_body('X is \'bar\', S is format_str(\'test %d %s foo\', 42, X)')
@@ -93,6 +95,7 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['Y'].s, 'fo')
 
+    # @unittest.skip("temporarily disabled")
     def test_date_time(self):
 
         clause = self.parser.parse_line_clause_body('get_time(T)')
@@ -112,6 +115,7 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['S'].s, '2017-02-14T01:02:03+01:00')
 
+    # @unittest.skip("temporarily disabled")
     def test_arith(self):
         clause = self.parser.parse_line_clause_body('X is -23')
         solutions = self.rt.search(clause)
@@ -141,6 +145,7 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['X'].f, 42)
 
+    # @unittest.skip("temporarily disabled")
     def test_comp(self):
 
         clause = self.parser.parse_line_clause_body('3>1')

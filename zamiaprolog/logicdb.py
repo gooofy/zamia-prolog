@@ -44,6 +44,7 @@ class LogicDB(object):
         self.parser   = PrologParser()
 
     def commit(self):
+        logging.info("commit.")
         self.session.commit()
 
     def clear_module(self, module):

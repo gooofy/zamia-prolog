@@ -26,6 +26,7 @@ from nltools import misc
 from zamiaprolog.logicdb import LogicDB
 from zamiaprolog.parser  import PrologParser
 from zamiaprolog.runtime import PrologRuntime
+from zamiaprolog.logic   import NumberLiteral
 
 recorded_moves = []
 
@@ -47,6 +48,32 @@ def record_move(g, rt):
         
     return True
 
+def multi_binder(g, rt):
+
+    global recorded_moves
+
+    rt._trace ('CALLED BUILTIN multi_binder', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('multi_binder: 2 args expected.')
+
+    var_x  = rt.prolog_get_variable(args[0], g.env)
+    var_y  = rt.prolog_get_variable(args[1], g.env) 
+
+    res = []
+    for x in range(2):
+
+        lx = NumberLiteral(x)
+
+        for y in range(2):
+            ly = NumberLiteral(y)
+
+            res.append({'x': lx, 'y': ly})
+
+    return res
+
 class TestEmbeddings (unittest.TestCase):
 
     def setUp(self):
@@ -62,16 +89,19 @@ class TestEmbeddings (unittest.TestCase):
 
         # setup compiler + environment
 
-        self.db     = LogicDB(db_url)
+        self.db     = LogicDB(db_url, echo=False)
         self.parser = PrologParser()
         self.rt     = PrologRuntime(self.db)
 
-    # @unittest.skip("temporarily disabled")
+        # self.rt.set_trace(True)
+
+    #@unittest.skip("temporarily disabled")
     def test_custom_builtins(self):
 
         global recorded_moves
 
         self.db.clear_module('unittests')
+        self.db.commit()
 
         self.parser.compile_file('samples/hanoi2.pl', 'unittests', self.db)
 
@@ -88,6 +118,20 @@ class TestEmbeddings (unittest.TestCase):
 
         self.assertEqual (len(recorded_moves), 7)
 
+    #@unittest.skip("temporarily disabled")
+    def test_custom_builtin_multiple_bindings(self):
+
+        self.db.clear_module('unittests')
+        self.db.commit()
+
+        self.rt.register_builtin('multi_binder', multi_binder)
+
+        clause = self.parser.parse_line_clause_body('multi_binder(X,Y)')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 4)
+
     def _custom_directive(self, module_name, clause, user_data):
         # logging.debug('custom_directive has been run')
         self.assertEqual (len(clause.head.args), 3)
@@ -97,10 +141,11 @@ class TestEmbeddings (unittest.TestCase):
 
         self.directive_mark = True
 
-    # @unittest.skip("temporarily disabled")
+    #@unittest.skip("temporarily disabled")
     def test_custom_directives(self):
 
         self.db.clear_module('unittests')
+        self.db.commit()
 
         self.parser.register_directive('custom_directive', self._custom_directive, None)
         self.directive_mark = False
@@ -114,7 +159,7 @@ class TestEmbeddings (unittest.TestCase):
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
+    # logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
     
     unittest.main()
 

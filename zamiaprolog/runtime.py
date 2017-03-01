@@ -63,7 +63,7 @@ builtin_specials = set(['is', 'cut', 'fail', 'not'])
 
 class PrologGoal:
 
-    def __init__ (self, head, terms, parent=None, env={}, negate=False) :
+    def __init__ (self, head, terms, parent=None, env={}, negate=False, inx=0) :
 
         assert type(terms) is list
 
@@ -72,7 +72,7 @@ class PrologGoal:
         self.parent = parent
         self.env    = copy.deepcopy(env)
         self.negate = negate
-        self.inx    = 0      # start search with 1st subgoal
+        self.inx    = inx
 
     def __unicode__ (self):
         
@@ -421,10 +421,22 @@ class PrologRuntime(object):
             # builtin predicate ?
 
             if pred.name in self.builtins:
-                if self.builtins[pred.name](g, self):
+                bindings = self.builtins[pred.name](g, self)
+                if bindings:
+
                     self._trace ('SUCCESS FROM BUILTIN ', g)
+    
                     g.inx = g.inx + 1
-                    self.queue.insert (0, g)
+                    if type(bindings) is list:
+
+                        for b in bindings:
+                            new_env = copy.deepcopy(g.env)
+                            new_env.update(b)
+                            self.queue.insert(0, PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx))
+
+                    else:
+                        self.queue.insert (0, g)
+
                 else:
                     self._finish_goal (g, False)
                 continue
