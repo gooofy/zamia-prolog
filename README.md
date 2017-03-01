@@ -194,7 +194,7 @@ def multi_binder(g, rt):
         for y in range(2):
             ly = NumberLiteral(y)
 
-            res.append({'x': lx, 'y': ly})
+            res.append({var_x: lx, var_y: ly})
 
     return res
 ```
@@ -205,7 +205,7 @@ solutions = self.rt.search(clause)
 ```
 will produce 4 solutions:
 ```
-[{'y': 0, 'x': 0}, {'y': 1, 'x': 0}, {'y': 0, 'x': 1}, {'y': 1, 'x': 1}]
+[{u'Y': 0, u'X': 0}, {u'Y': 1, u'X': 0}, {u'Y': 0, u'X': 1}, {u'Y': 1, u'X': 1}]
 ```
 
 Custom Compiler Directives

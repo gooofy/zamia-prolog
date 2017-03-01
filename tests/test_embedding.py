@@ -70,7 +70,7 @@ def multi_binder(g, rt):
         for y in range(2):
             ly = NumberLiteral(y)
 
-            res.append({'x': lx, 'y': ly})
+            res.append({var_x: lx, var_y: ly})
 
     return res
 
