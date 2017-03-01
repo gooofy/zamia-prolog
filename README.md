@@ -145,6 +145,69 @@ output:
 [(Predicate(left), Predicate(right)), (Predicate(left), Predicate(center)), (Predicate(right), Predicate(center)), (Predicate(left), Predicate(right)), (Predicate(center), Predicate(left)), (Predicate(center), Predicate(right)), (Predicate(left), Predicate(right))]
 ```
 
+Generate Multiple Bindings from Custom Predicates
+-------------------------------------------------
+
+Custom predicates not only can return True/False and manipulate the environment directly to generate a single binding as
+in
+
+```python
+def custom_pred1(g, rt):
+
+    rt._trace ('CALLED BUILTIN custom_pred1', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('custom_pred1: 1 arg expected.')
+
+    arg_var  = rt.prolog_get_variable(args[0], g.env)
+       
+    g.env[arg_var] = NumberLiteral(42)
+
+    return True
+```
+
+they can also return a list of bindings which will then result in one prolog result each. In this example,
+we generate 4 bindings of two variables each:
+
+```python
+def multi_binder(g, rt):
+
+    global recorded_moves
+
+    rt._trace ('CALLED BUILTIN multi_binder', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('multi_binder: 2 args expected.')
+
+    var_x  = rt.prolog_get_variable(args[0], g.env)
+    var_y  = rt.prolog_get_variable(args[1], g.env) 
+
+    res = []
+    for x in range(2):
+
+        lx = NumberLiteral(x)
+
+        for y in range(2):
+            ly = NumberLiteral(y)
+
+            res.append({'x': lx, 'y': ly})
+
+    return res
+```
+so running
+```python
+clause = self.parser.parse_line_clause_body('multi_binder(X,Y)')
+solutions = self.rt.search(clause)
+```
+will produce 4 solutions:
+```
+[{'y': 0, 'x': 0}, {'y': 1, 'x': 0}, {'y': 0, 'x': 1}, {'y': 1, 'x': 1}]
+```
+
 Custom Compiler Directives
 --------------------------
 
