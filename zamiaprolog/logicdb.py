@@ -47,14 +47,17 @@ class LogicDB(object):
         logging.info("commit.")
         self.session.commit()
 
-    def clear_module(self, module):
+    def clear_module(self, module, commit=True):
 
         logging.info("Clearing %s ..." % module)
         self.session.query(model.ORMClause).filter(model.ORMClause.module==module).delete()
         self.session.query(model.ORMPredicateDoc).filter(model.ORMPredicateDoc.module==module).delete()
         logging.info("Clearing %s ... done." % module)
 
-    def clear_all_modules(self):
+        if commit:
+            self.commit()
+
+    def clear_all_modules(self, commit=True):
 
         logging.info("Clearing all modules ...")
         self.session.query(model.ORMClause).delete()
@@ -62,6 +65,8 @@ class LogicDB(object):
         self.session.query(model.Context).delete()
         logging.info("Clearing all modules ... done.")
         
+        if commit:
+            self.commit()
 
     def store (self, module, clause):
 

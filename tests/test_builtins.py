@@ -27,6 +27,8 @@ from zamiaprolog.logicdb import LogicDB
 from zamiaprolog.parser  import PrologParser
 from zamiaprolog.runtime import PrologRuntime
 
+UNITTEST_MODULE = 'unittests'
+
 class TestBuiltins (unittest.TestCase):
 
     def setUp(self):
@@ -46,12 +48,12 @@ class TestBuiltins (unittest.TestCase):
         self.parser = PrologParser()
         self.rt     = PrologRuntime(self.db)
 
+        self.db.clear_module(UNITTEST_MODULE)
+
     # @unittest.skip("temporarily disabled")
     def test_hanoi1(self):
 
-        self.db.clear_module('unittests')
-
-        self.parser.compile_file('samples/hanoi1.pl', 'unittests', self.db)
+        self.parser.compile_file('samples/hanoi1.pl', UNITTEST_MODULE, self.db)
 
         clause = self.parser.parse_line_clause_body('move(3,left,right,center)')
         logging.debug('clause: %s' % clause)

@@ -620,7 +620,7 @@ class PrologParser(object):
     def register_directive(self, name, f, user_data):
         self.directives[name] = (f, user_data)
 
-    def compile_file (self, filename, module_name, db):
+    def compile_file (self, filename, module_name, db, clear_module=False):
 
         # quick source line count for progress output below
 
@@ -631,8 +631,8 @@ class PrologParser(object):
         logging.info("%s: %d lines." % (filename, linecnt))
 
         # remove old predicates of this module from db
-
-        db.clear_module(module_name)
+        if clear_module:
+            db.clear_module(module_name)
 
         # actual parsing starts here
 

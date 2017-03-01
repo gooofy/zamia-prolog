@@ -28,6 +28,8 @@ from zamiaprolog.parser  import PrologParser
 from zamiaprolog.runtime import PrologRuntime
 from zamiaprolog.logic   import *
 
+UNITTEST_MODULE = 'unittests'
+
 class TestZamiaProlog (unittest.TestCase):
 
     def setUp(self):
@@ -46,6 +48,8 @@ class TestZamiaProlog (unittest.TestCase):
         self.db     = LogicDB(db_url)
         self.parser = PrologParser()
         self.rt     = PrologRuntime(self.db)
+
+        self.db.clear_module(UNITTEST_MODULE)
 
     # @unittest.skip("temporarily disabled")
     def test_parse_line_clauses(self):
@@ -68,11 +72,9 @@ class TestZamiaProlog (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_kb1(self):
 
-        self.db.clear_module('unittests')
-
         self.assertEqual (len(self.db.lookup('party')), 0)
 
-        self.parser.compile_file('samples/kb1.pl', 'unittests', self.db)
+        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE, self.db)
 
         self.assertEqual (len(self.db.lookup('party')), 1)
 
@@ -107,9 +109,7 @@ class TestZamiaProlog (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_or(self):
 
-        self.db.clear_module('unittests')
-
-        self.parser.compile_file('samples/or_test.pl', 'unittests', self.db)
+        self.parser.compile_file('samples/or_test.pl', UNITTEST_MODULE, self.db)
 
         # self.rt.set_trace(True)
 

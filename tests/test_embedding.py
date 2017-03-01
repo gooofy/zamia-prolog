@@ -28,6 +28,8 @@ from zamiaprolog.parser  import PrologParser
 from zamiaprolog.runtime import PrologRuntime
 from zamiaprolog.logic   import NumberLiteral
 
+UNITTEST_MODULE = 'unittests'
+
 recorded_moves = []
 
 def record_move(g, rt):
@@ -95,15 +97,14 @@ class TestEmbeddings (unittest.TestCase):
 
         # self.rt.set_trace(True)
 
+        self.db.clear_module(UNITTEST_MODULE)
+
     #@unittest.skip("temporarily disabled")
     def test_custom_builtins(self):
 
         global recorded_moves
 
-        self.db.clear_module('unittests')
-        self.db.commit()
-
-        self.parser.compile_file('samples/hanoi2.pl', 'unittests', self.db)
+        self.parser.compile_file('samples/hanoi2.pl', UNITTEST_MODULE, self.db)
 
         clause = self.parser.parse_line_clause_body('move(3,left,right,center)')
         logging.debug('clause: %s' % clause)
@@ -120,9 +121,6 @@ class TestEmbeddings (unittest.TestCase):
 
     #@unittest.skip("temporarily disabled")
     def test_custom_builtin_multiple_bindings(self):
-
-        self.db.clear_module('unittests')
-        self.db.commit()
 
         self.rt.register_builtin('multi_binder', multi_binder)
 
@@ -144,13 +142,10 @@ class TestEmbeddings (unittest.TestCase):
     #@unittest.skip("temporarily disabled")
     def test_custom_directives(self):
 
-        self.db.clear_module('unittests')
-        self.db.commit()
-
         self.parser.register_directive('custom_directive', self._custom_directive, None)
         self.directive_mark = False
 
-        # self.parser.compile_file('samples/dir.pl', 'unittests', self.db)
+        # self.parser.compile_file('samples/dir.pl', UNITTEST_MODULE, self.db)
         clauses = self.parser.parse_line_clauses('custom_directive(abc, 42, \'foo\').')
 
         self.assertEqual (self.directive_mark, True)
