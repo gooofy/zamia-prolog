@@ -147,7 +147,18 @@ class ListLiteral(Literal):
         return repr(self.l)
 
     def __eq__(self, other):
-        return isinstance(other, ListLiteral) and other.l == self.l
+
+        if not isinstance(other, ListLiteral):
+            return False
+
+        return other.l == self.l
+
+    def __ne__(self, other):
+
+        if not isinstance(other, ListLiteral):
+            return True
+
+        return other.l != self.l
 
     def get_literal(self):
         return self.l

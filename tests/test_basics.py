@@ -139,6 +139,19 @@ class TestZamiaProlog (unittest.TestCase):
 
         self.assertEqual (solutions[0]['Y'].f, 9)
 
+    def test_list_equality(self):
+
+        clause = self.parser.parse_line_clause_body('[] is []')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body('[1] is []')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 0)
 
 if __name__ == "__main__":
 

@@ -426,6 +426,7 @@ class PrologRuntime(object):
             name = pred.name
             if name in builtin_specials:
                 if name == 'is' :
+
                     ques = self.prolog_eval(pred.args[0], g.env)
                     ans  = self.prolog_eval(pred.args[1], g.env)
 
