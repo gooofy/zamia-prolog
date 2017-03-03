@@ -117,7 +117,7 @@ class NumberLiteral(Literal):
         return self.f <= b.f
 
     def __ne__(self, b):
-        return isinstance(b, NumberLiteral) and self.f != b.f
+        return not isinstance(b, NumberLiteral) or self.f != b.f
 
     def __ge__(self, b):
         assert isinstance(b, NumberLiteral)

@@ -153,6 +153,12 @@ class TestZamiaProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 0)
 
+        clause = self.parser.parse_line_clause_body('909442800.0 is []')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 0)
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
