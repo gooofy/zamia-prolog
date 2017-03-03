@@ -51,7 +51,7 @@
 #
 # macro_call    ::= '@' ( variable | name ) ':' ( variable | name )
 #
-# primary-term  ::= ( variable | number | string | list | relation | macro_call | '(' term { ',' term } ')' )
+# primary-term  ::= ( variable | number | string | list | relation | macro_call | '(' term { ',' term } ')' | '!' )
 #
 # list          ::= '[' [ primary-term ] ( { ',' primary-term } | '|' primary-term ) ']'
 #
@@ -101,6 +101,7 @@ SYM_COLON     = 17   # :
 SYM_LBRACKET  = 18   # [
 SYM_RBRACKET  = 19   # ]
 SYM_PIPE      = 20   # |
+SYM_CUT       = 21   # !
 
 # structured comments
 CSTATE_IDLE   = 0
@@ -285,6 +286,11 @@ class PrologParser(object):
 
         elif self.cur_c == u'|':
             self.cur_sym = SYM_PIPE
+            self.next_c()
+
+        elif self.cur_c == u'!':
+            self.cur_sym = SYM_NAME
+            self.cur_str = 'cut'
             self.next_c()
 
         else:
