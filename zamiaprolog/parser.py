@@ -49,7 +49,7 @@
 #
 # unary-op      ::= '+' | '-' 
 #
-# macro_call    ::= '@' ( variable | name ) ':' ( variable | name )
+# macro_call    ::= macro_name
 #
 # primary-term  ::= ( variable | number | string | list | relation | macro_call | '(' term { ',' term } ')' | '!' )
 #
@@ -83,30 +83,30 @@ NAME_CHARS_EXTENDED = NAME_CHARS | set([':'])
 
 SIGN_CHARS = set([u'=',u'<',u'>',u'+',u'-',u'*',u'/',u'\\'])
 
-SYM_NONE      =  0
-SYM_EOF       =  1
-SYM_STRING    =  2   # 'abc'
-SYM_NAME      =  3   # abc aWord =< is div + 
-SYM_VARIABLE  =  4   # X Avariable _Variable _
-SYM_NUMBER    =  5  
+SYM_NONE       =  0
+SYM_EOF        =  1
+SYM_STRING     =  2   # 'abc'
+SYM_NAME       =  3   # abc aWord =< is div + 
+SYM_VARIABLE   =  4   # X Avariable _Variable _
+SYM_NUMBER     =  5  
+SYM_MACRO_NAME =  6   # name starting with '@', required to contain a colon
 
-SYM_IMPL      = 10   # :-
-SYM_LPAREN    = 11   # (
-SYM_RPAREN    = 12   # )
-SYM_COMMA     = 13   # ,
-SYM_PERIOD    = 14   # .
-SYM_SEMICOLON = 15   # ;
-SYM_AT        = 16   # @
-SYM_COLON     = 17   # :
-SYM_LBRACKET  = 18   # [
-SYM_RBRACKET  = 19   # ]
-SYM_PIPE      = 20   # |
-SYM_CUT       = 21   # !
+SYM_IMPL       = 10   # :-
+SYM_LPAREN     = 11   # (
+SYM_RPAREN     = 12   # )
+SYM_COMMA      = 13   # ,
+SYM_PERIOD     = 14   # .
+SYM_SEMICOLON  = 15   # ;
+SYM_COLON      = 17   # :
+SYM_LBRACKET   = 18   # [
+SYM_RBRACKET   = 19   # ]
+SYM_PIPE       = 20   # |
+SYM_CUT        = 21   # !
 
 # structured comments
-CSTATE_IDLE   = 0
-CSTATE_HEADER = 1
-CSTATE_BODY   = 2
+CSTATE_IDLE    = 0
+CSTATE_HEADER  = 1
+CSTATE_BODY    = 2
 
 class PrologParser(object):
 
@@ -226,8 +226,12 @@ class PrologParser(object):
                 if not self.cur_c or (not self.cur_c.isdigit() and self.cur_c != '.'):
                     break
 
-        elif self.cur_c in NAME_CHARS:
-            self.cur_sym = SYM_VARIABLE if self.cur_c == u'_' or self.cur_c.isupper() else SYM_NAME
+        elif self.cur_c in NAME_CHARS or self.cur_c == '@':
+            if self.cur_c == '@':
+                self.next_c()
+                self.cur_sym = SYM_MACRO_NAME
+            else:
+                self.cur_sym = SYM_VARIABLE if self.cur_c == u'_' or self.cur_c.isupper() else SYM_NAME
 
             while True:
                 self.cur_str += self.cur_c
@@ -270,10 +274,6 @@ class PrologParser(object):
 
         elif self.cur_c == u';':
             self.cur_sym = SYM_SEMICOLON
-            self.next_c()
-
-        elif self.cur_c == u'@':
-            self.cur_sym = SYM_AT
             self.next_c()
 
         elif self.cur_c == u'[':
@@ -348,8 +348,7 @@ class PrologParser(object):
         elif self.cur_sym == SYM_NAME:
             res = self.relation()
 
-        elif self.cur_sym == SYM_AT:
-            self.next_sym()
+        elif self.cur_sym == SYM_MACRO_NAME:
             res = self.macro_call()
 
         elif self.cur_sym == SYM_LPAREN:
@@ -379,21 +378,14 @@ class PrologParser(object):
 
     def macro_call(self):
 
-        if self.cur_sym != SYM_NAME and self.cur_sym != SYM_VARIABLE:
-            self.report_error ("macro: name expected (%d)." % self.cur_sym)
-        macro_name = self.cur_str
+        mc = self.cur_str
         self.next_sym()
+        
+        parts = mc.split(':')
+        if len(parts) != 2:
+            self.report_error ("macro:var expected.")
 
-        if self.cur_sym != SYM_COLON:        
-            self.report_error ("macro: : expected.")
-        self.next_sym()
-
-        if self.cur_sym != SYM_NAME and self.cur_sym != SYM_VARIABLE:
-            self.report_error ("macro: predicate name expected.")
-        pred_name = self.cur_str
-        self.next_sym()
-
-        return MacroCall(macro_name, pred_name)
+        return MacroCall(parts[0], parts[1])
 
     def unary_term(self):
 
