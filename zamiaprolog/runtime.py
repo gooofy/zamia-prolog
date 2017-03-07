@@ -148,6 +148,7 @@ class PrologRuntime(object):
         # lists
 
         self.register_builtin('list_contains',   builtin_list_contains)
+        self.register_builtin('list_nth',        builtin_list_nth)
 
         #
         # builtin functions

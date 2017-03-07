@@ -241,6 +241,29 @@ def builtin_list_contains(g, rt):
 
     return False
 
+def builtin_list_nth(g, rt):
+
+    rt._trace_fn ('CALLED BUILTIN list_nth', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 3:
+        raise PrologRuntimeError('list_nth: 3 args (index, list, elem) expected.')
+
+    arg_idx  = rt.prolog_get_int  (args[0], g.env)
+    arg_list = rt.prolog_get_list (args[1], g.env)
+    arg_elem = rt.prolog_eval     (args[2], g.env)
+    if not arg_elem:
+        arg_elem = args[2]
+
+    if not isinstance(arg_elem, Variable):
+        raise PrologRuntimeError('list_nth: 3rd arg has to be an unbound variable for now, %s found instead.' % repr(arg_elem))
+
+    g.env[arg_elem.name] = arg_list.l[arg_idx]
+
+    return True
+
 #
 # functions
 #

@@ -86,6 +86,10 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (len(solutions), 0)
 
+        clause = self.parser.parse_line_clause_body('X is [1,2,3,4], list_nth(1, X, E).')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['E'].f, 2)
+
     # @unittest.skip("temporarily disabled")
     def test_strings(self):
 
