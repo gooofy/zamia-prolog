@@ -101,6 +101,11 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['Y'].s, 'fo')
 
+        clause = self.parser.parse_line_clause_body('atom_chars(foo, X), atom_chars(Y, "bar").')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].s, 'foo')
+        self.assertEqual (solutions[0]['Y'].name, 'bar')
+
     # @unittest.skip("temporarily disabled")
     def test_date_time(self):
 

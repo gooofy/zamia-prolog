@@ -199,6 +199,30 @@ def builtin_sub_string(g, rt):
         
     return True
 
+def builtin_atom_chars(g, rt):
+
+    rt._trace ('CALLED BUILTIN atom_chars', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('atom_chars: 2 args expected.')
+
+    arg_atom   = rt.prolog_eval(args[0], g.env)
+    arg_str    = rt.prolog_eval(args[1], g.env)
+
+    if not arg_atom and not arg_str:
+        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.')
+    if arg_atom and arg_str:
+        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.')
+
+    if arg_atom:
+        g.env[args[1].name] = StringLiteral(unicode(arg_atom))
+    else:
+        g.env[args[0].name] = Predicate(arg_str.s)
+        
+    return True
+
 def builtin_write(g, rt):
 
     rt._trace ('CALLED BUILTIN write', g)

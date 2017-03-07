@@ -133,6 +133,7 @@ class PrologRuntime(object):
         # strings
 
         self.register_builtin('sub_string',      builtin_sub_string)
+        self.register_builtin('atom_chars',      builtin_atom_chars)
 
         # time and date
 
