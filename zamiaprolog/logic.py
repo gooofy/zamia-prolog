@@ -69,7 +69,7 @@ class StringLiteral(Literal):
         return self.s <= b.s
 
     def __ne__(self, b):
-        return isinstance(b, StringLiteral) and self.s != b.s
+        return not isinstance(b, StringLiteral) or self.s != b.s
 
     def __ge__(self, b):
         assert isinstance(b, StringLiteral)
