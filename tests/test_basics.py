@@ -34,7 +34,7 @@ class TestZamiaProlog (unittest.TestCase):
 
     def setUp(self):
 
-        config = misc.load_config('.nlprc')
+        config = misc.load_config('.airc')
 
         #
         # db, store
@@ -154,6 +154,14 @@ class TestZamiaProlog (unittest.TestCase):
         self.assertEqual (len(solutions), 0)
 
         clause = self.parser.parse_line_clause_body('909442800.0 is []')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 0)
+
+    def test_is(self):
+
+        clause = self.parser.parse_line_clause_body('GENDER is "blubber", GENDER is wde:Male')
         logging.debug('clause: %s' % clause)
         solutions = self.rt.search(clause, {})
         logging.debug('solutions: %s' % repr(solutions))

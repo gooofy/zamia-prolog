@@ -33,7 +33,7 @@ class TestBuiltins (unittest.TestCase):
 
     def setUp(self):
 
-        config = misc.load_config('.nlprc')
+        config = misc.load_config('.airc')
 
         #
         # db, store
