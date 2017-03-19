@@ -62,7 +62,6 @@ class LogicDB(object):
         logging.info("Clearing all modules ...")
         self.session.query(model.ORMClause).delete()
         self.session.query(model.ORMPredicateDoc).delete()
-        self.session.query(model.Context).delete()
         logging.info("Clearing all modules ... done.")
         
         if commit:
