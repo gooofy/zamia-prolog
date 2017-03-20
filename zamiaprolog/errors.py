@@ -29,10 +29,15 @@ class PrologRuntimeError(Exception):
 
 # parser throws this at compile-time:
 class PrologError(Exception):
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, value, location=None):
+        self.value    = value
+        self.location = location
     def __str__(self):
+        if self.location:
+            return str(self.location) + ':' + repr(self.value)
         return repr(self.value)
     def __unicode__(self):
+        if self.location:
+            return unicode(self.location) + u':' + self.value
         return self.value
 
