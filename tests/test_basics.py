@@ -27,6 +27,7 @@ from zamiaprolog.logicdb import LogicDB
 from zamiaprolog.parser  import PrologParser
 from zamiaprolog.runtime import PrologRuntime
 from zamiaprolog.logic   import *
+from zamiaprolog.errors  import PrologError
 
 UNITTEST_MODULE = 'unittests'
 
@@ -50,6 +51,20 @@ class TestZamiaProlog (unittest.TestCase):
         self.rt     = PrologRuntime(self.db)
 
         self.db.clear_module(UNITTEST_MODULE)
+
+    # @unittest.skip("temporarily disabled")
+    def test_parser(self):
+
+        error_catched = False
+
+        try:
+
+            clause = self.parser.parse_line_clause_body('say_eoa(en, "Kids are the best')
+            logging.debug('clause: %s' % clause)
+        except PrologError as e:
+            error_catched = True
+
+        self.assertEqual(error_catched, True)
 
     # @unittest.skip("temporarily disabled")
     def test_parse_line_clauses(self):

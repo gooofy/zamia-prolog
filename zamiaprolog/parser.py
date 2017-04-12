@@ -151,7 +151,7 @@ class PrologParser(object):
             while not (self.cur_c is None) and self.cur_c.isspace():
                 self.next_c()
 
-            if self.cur_c is None or self.cur_c == u'':
+            if not self.cur_c:
                 self.cur_sym = SYM_EOF
                 return
 
@@ -166,7 +166,7 @@ class PrologParser(object):
                     self.next_c()
 
                 while True:
-                    if self.cur_c is None:
+                    if not self.cur_c:
                         self.cur_sym = SYM_EOF
                         return
                     if self.cur_c == u'\n':
@@ -201,8 +201,11 @@ class PrologParser(object):
 
             while True:
                 self.next_c()
-                if self.cur_c is None:
+
+                if not self.cur_c:
                     self.report_error ("Unterminated string literal.")
+                    self.cur_sym = SYM_EOF
+                    break
                 if self.cur_c == u'\\':
                     self.next_c()
                     self.cur_str += self.cur_c
