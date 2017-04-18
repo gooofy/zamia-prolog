@@ -288,6 +288,30 @@ def builtin_list_nth(g, rt):
 
     return True
 
+def builtin_list_slice(g, rt):
+
+    rt._trace_fn ('CALLED BUILTIN list_slice', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 4:
+        raise PrologRuntimeError('list_slice: 4 args (idx1, idx2, list, slice) expected.')
+
+    arg_idx1  = rt.prolog_get_int  (args[0], g.env)
+    arg_idx2  = rt.prolog_get_int  (args[1], g.env)
+    arg_list  = rt.prolog_get_list (args[2], g.env)
+    arg_slice = rt.prolog_eval     (args[3], g.env)
+    if not arg_slice:
+        arg_slice = args[3]
+
+    if not isinstance(arg_slice, Variable):
+        raise PrologRuntimeError('list_slice: 4th arg has to be an unbound variable for now, %s found instead.' % repr(arg_slice))
+
+    g.env[arg_slice.name] = ListLiteral(arg_list.l[arg_idx1:arg_idx2])
+
+    return True
+
 #
 # functions
 #
