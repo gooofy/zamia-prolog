@@ -59,7 +59,7 @@ binary_operators = {'+'  : prolog_binary_add,
                     'mod': prolog_binary_mod,
                     }
 
-builtin_specials = set(['is', 'cut', 'fail', 'not'])
+builtin_specials = set(['is', 'cut', 'fail', 'not', 'or', 'and'])
 
 class PrologGoal:
 
@@ -449,6 +449,20 @@ class PrologRuntime(object):
                     self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, negate=True))
                     continue
 
+                elif name == 'or':
+
+                    # logging.debug ('   or clause detected.')
+
+                    for subgoal in pred.args:
+                        # logging.debug ('    subgoal: %s' % subgoal)
+                        self.queue.insert(0, PrologGoal(pred, [subgoal], g, env=g.env))
+
+                    continue
+
+                elif name == 'and':
+                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env))
+                    continue
+
                 g.inx = g.inx + 1               # Succeed. resume self.
                 self.queue.insert(0, g)
                 continue
@@ -491,39 +505,17 @@ class PrologRuntime(object):
 
                 # logging.debug('clause: %s' % clause)
 
-                # queue up subgoals, take and/or into account:
-
-                children = []
+                # queue up child subgoal
 
                 if clause.body:
-                
-                    if clause.body.name == 'or':
-
-                        # logging.debug ('   or clause detected.')
-
-                        for subgoal in clause.body.args:
-
-                            # logging.debug ('    subgoal: %s' % subgoal)
-
-                            if subgoal.name == 'and':
-                                children.append( PrologGoal(clause.head, subgoal.args, g) )
-                            else:
-                                children.append( PrologGoal(clause.head, [subgoal], g) )
-                    else:
-                        if clause.body.name == 'and':
-                            children.append(PrologGoal(clause.head, clause.body.args, g))
-                        else:
-                            children.append(PrologGoal(clause.head, [clause.body], g))
+                    child = PrologGoal(clause.head, [clause.body], g)
                 else:
-                    children.append(PrologGoal(clause.head, [], g))
+                    child = PrologGoal(clause.head, [], g)
 
-                # logging.debug('   children: %s' % children)
-
-                for child in children:
-                    ans = self._unify (pred, g.env, clause.head, child.env)
-                    if ans:                             # if unifies, queue it up
-                        self.queue.insert(0, child)
-                        # logging.debug ("Queue %s" % str(child))
+                ans = self._unify (pred, g.env, clause.head, child.env)
+                if ans:                             # if unifies, queue it up
+                    self.queue.insert(0, child)
+                    # logging.debug ("Queue %s" % str(child))
 
         return self.solutions
 

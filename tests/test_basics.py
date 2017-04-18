@@ -140,6 +140,19 @@ class TestZamiaProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 8)
 
+    def test_or_toplevel(self):
+
+        self.parser.compile_file('samples/or_test.pl', UNITTEST_MODULE, self.db)
+
+        self.rt.set_trace(True)
+
+        clause = self.parser.parse_line_clause_body(u'woman(mary); woman(jody)')
+        logging.debug(u'clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+
     def test_var_access(self):
 
         # set var X from python:
