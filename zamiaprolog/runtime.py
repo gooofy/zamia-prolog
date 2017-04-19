@@ -210,6 +210,8 @@ class PrologRuntime(object):
 
         if isinstance (term, Literal):
             return term
+        if isinstance (term, MacroCall):
+            return term
         if isinstance (term, Variable):
             ans = env.get(term.name)
             if not ans:
