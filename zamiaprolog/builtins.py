@@ -394,3 +394,14 @@ def builtin_list_avg(pred, env, rt):
     assert len(l)>0
     return l_sum / NumberLiteral(float(len(l)))
 
+def builtin_list_len(pred, env, rt):
+
+    rt._trace_fn ('CALLED FUNCTION list_len', env)
+
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('list builtin fn: 1 arg expected.')
+
+    arg_list = rt.prolog_get_list (args[0], env)
+    return NumberLiteral(len(arg_list.l))
+

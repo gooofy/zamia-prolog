@@ -165,6 +165,7 @@ class PrologRuntime(object):
         self.register_builtin_function ('list_min',   builtin_list_min)
         self.register_builtin_function ('list_sum',   builtin_list_sum)
         self.register_builtin_function ('list_avg',   builtin_list_avg)
+        self.register_builtin_function ('list_len',   builtin_list_len)
 
     def prolog_eval (self, term, env):      # eval all variables within a term to constants
 
