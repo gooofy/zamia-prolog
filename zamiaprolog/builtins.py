@@ -38,8 +38,8 @@ def builtin_cmp_op(g, op, rt):
     if len(args) != 2:
         raise PrologRuntimeError('cmp_op: 2 args expected.')
 
-    a = rt.prolog_get_float(args[0], g.env)
-    b = rt.prolog_get_float(args[1], g.env)
+    a = rt.prolog_get_literal(args[0], g.env)
+    b = rt.prolog_get_literal(args[1], g.env)
 
     res = op(a,b)
 
@@ -52,6 +52,7 @@ def builtin_larger(g, rt):           return builtin_cmp_op(g, lambda a,b: a>b  ,
 def builtin_smaller(g, rt):          return builtin_cmp_op(g, lambda a,b: a<b  ,rt)
 def builtin_smaller_or_equal(g, rt): return builtin_cmp_op(g, lambda a,b: a<=b ,rt)
 def builtin_larger_or_equal(g, rt):  return builtin_cmp_op(g, lambda a,b: a>=b ,rt)
+
 def builtin_non_equal(g, rt):        return builtin_cmp_op(g, lambda a,b: a!=b ,rt)
 def builtin_equal(g, rt):            return builtin_cmp_op(g, lambda a,b: a==b ,rt)
 

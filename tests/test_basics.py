@@ -187,6 +187,18 @@ class TestZamiaProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 0)
 
+        clause = self.parser.parse_line_clause_body('[1,2,3] = [1,2,3]')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body('[1,2,3] \\= [1,2,3,4,5]')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
     def test_is(self):
 
         clause = self.parser.parse_line_clause_body('GENDER is "blubber", GENDER is wde:Male')
