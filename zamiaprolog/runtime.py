@@ -34,12 +34,6 @@ from logic import *
 from builtins import *
 from errors import *
 
-class PrologRuntimeError(Exception):
-    def __init__(self, value):
-        self.value = value
-    def __str__(self):
-        return repr(self.value)
-
 def prolog_unary_plus  (a) : return NumberLiteral(a)
 def prolog_unary_minus (a) : return NumberLiteral(-a)
 
@@ -63,16 +57,17 @@ builtin_specials = set(['is', 'cut', 'fail', 'not', 'or', 'and'])
 
 class PrologGoal:
 
-    def __init__ (self, head, terms, parent=None, env={}, negate=False, inx=0) :
+    def __init__ (self, head, terms, parent=None, env={}, negate=False, inx=0, location=None) :
 
         assert type(terms) is list
 
-        self.head   = head
-        self.terms  = terms
-        self.parent = parent
-        self.env    = copy.deepcopy(env)
-        self.negate = negate
-        self.inx    = inx
+        self.head     = head
+        self.terms    = terms
+        self.parent   = parent
+        self.env      = copy.deepcopy(env)
+        self.negate   = negate
+        self.inx      = inx
+        self.location = location
 
     def __unicode__ (self):
         
@@ -167,7 +162,7 @@ class PrologRuntime(object):
         self.register_builtin_function ('list_avg',   builtin_list_avg)
         self.register_builtin_function ('list_len',   builtin_list_len)
 
-    def prolog_eval (self, term, env):      # eval all variables within a term to constants
+    def prolog_eval (self, term, env, location):      # eval all variables within a term to constants
 
         if isinstance(term, Predicate):
 
@@ -177,7 +172,7 @@ class PrologRuntime(object):
                 op = unary_operators.get(term.name)
                 if op:
 
-                    a = self.prolog_eval(term.args[0],env)
+                    a = self.prolog_eval(term.args[0], env, location)
 
                     if not isinstance (a, NumberLiteral):
                         return None
@@ -191,12 +186,12 @@ class PrologRuntime(object):
                 if len(term.args) != 2:
                     return None
 
-                a = self.prolog_eval(term.args[0],env)
+                a = self.prolog_eval(term.args[0], env, location)
 
                 if not isinstance (a, NumberLiteral):
                     return None
 
-                b = self.prolog_eval(term.args[1],env)
+                b = self.prolog_eval(term.args[1], env, location)
 
                 if not isinstance (b, NumberLiteral):
                     return None
@@ -206,7 +201,7 @@ class PrologRuntime(object):
             # engine-provided builtin function ?
 
             if term.name in self.builtin_functions:
-                return self.builtin_functions[term.name](term, env, self)
+                return self.builtin_functions[term.name](term, env, self, location)
 
         if isinstance (term, Literal):
             return term
@@ -217,68 +212,68 @@ class PrologRuntime(object):
             if not ans:
                 return None
             else: 
-                return self.prolog_eval(ans,env)
+                return self.prolog_eval(ans, env, location)
         args = []
         for arg in term.args : 
-            a = self.prolog_eval(arg,env)
+            a = self.prolog_eval(arg, env, location)
             if not a: 
                 return None
             args.append(a)
         return Predicate(term.name, args)
 
     # helper functions (used by builtin predicates)
-    def prolog_get_int(self, term, env):
+    def prolog_get_int(self, term, env, location):
 
-        t = self.prolog_eval (term, env)
+        t = self.prolog_eval (term, env, location)
 
         if not isinstance (t, NumberLiteral):
-            raise PrologRuntimeError('Integer expected, %s found instead.' % term.__class__)
+            raise PrologRuntimeError('Integer expected, %s found instead.' % term.__class__, location)
         return int(t.f)
 
-    def prolog_get_float(self, term, env):
+    def prolog_get_float(self, term, env, location):
 
-        t = self.prolog_eval (term, env)
+        t = self.prolog_eval (term, env, location)
 
         if not isinstance (t, NumberLiteral):
-            raise PrologRuntimeError('Float expected, %s found instead.' % term.__class__)
+            raise PrologRuntimeError('Float expected, %s found instead.' % term.__class__, location)
         return t.f
 
-    def prolog_get_string(self, term, env):
+    def prolog_get_string(self, term, env, location):
 
-        t = self.prolog_eval (term, env)
+        t = self.prolog_eval (term, env, location)
 
         if not isinstance (t, StringLiteral):
-            raise PrologRuntimeError('String expected, %s found instead.' % t.__class__)
+            raise PrologRuntimeError('String expected, %s found instead.' % t.__class__, location)
         return t.s
 
-    def prolog_get_literal(self, term, env):
+    def prolog_get_literal(self, term, env, location):
 
-        t = self.prolog_eval (term, env)
+        t = self.prolog_eval (term, env, location)
 
         if not isinstance (t, Literal):
-            raise PrologRuntimeError('Literal expected, %s %s found instead.' % (t.__class__, t))
+            raise PrologRuntimeError('Literal expected, %s %s found instead.' % (t.__class__, t), location)
         return t.get_literal()
 
-    def prolog_get_bool(self, term, env):
+    def prolog_get_bool(self, term, env, location):
 
-        t = self.prolog_eval (term, env)
+        t = self.prolog_eval (term, env, location)
 
         if not isinstance(t, Predicate):
-            raise PrologRuntimeError('Boolean expected, %s found instead.' % term.__class__)
+            raise PrologRuntimeError('Boolean expected, %s found instead.' % term.__class__, location)
         return t.name == 'true'
 
-    def prolog_get_list(self, term, env):
+    def prolog_get_list(self, term, env, location):
 
-        t = self.prolog_eval (term, env)
+        t = self.prolog_eval (term, env, location)
 
         if not isinstance(t, ListLiteral):
-            raise PrologRuntimeError('List expected, %s found instead.' % term.__class__)
+            raise PrologRuntimeError('List expected, %s found instead.' % term.__class__, location)
         return t
 
-    def prolog_get_variable(self, term, env):
+    def prolog_get_variable(self, term, env, location):
 
         if not isinstance(term, Variable):
-            raise PrologRuntimeError('Variable expected, %s found instead.' % term.__class__)
+            raise PrologRuntimeError('Variable expected, %s found instead.' % term.__class__, location)
         return term.name
 
 
@@ -287,30 +282,30 @@ class PrologRuntime(object):
     # being satisfied, parent is another Goal which spawned this one
     # and which we will unify back to when this Goal is complete.
 
-    def _unify (self, src, srcEnv, dest, destEnv) :
+    def _unify (self, src, srcEnv, dest, destEnv, location) :
         "update dest env from src. return true if unification succeeds"
         # logging.debug("Unify %s %s to %s %s" % (src, srcEnv, dest, destEnv))
 
         # FIXME: ?!? if src.pred == '_' or dest.pred == '_' : return sts(1,"Wildcard")
 
         if isinstance (src, Variable):
-            srcVal = self.prolog_eval(src, srcEnv)
+            srcVal = self.prolog_eval(src, srcEnv, location)
             if not srcVal: 
                 return True 
             else: 
-                return self._unify(srcVal, srcEnv, dest, destEnv)
+                return self._unify(srcVal, srcEnv, dest, destEnv, location)
 
         if isinstance (dest, Variable):
-            destVal = self.prolog_eval(dest, destEnv)     # evaluate destination
+            destVal = self.prolog_eval(dest, destEnv, location)     # evaluate destination
             if destVal: 
-                return self._unify(src, srcEnv, destVal, destEnv)
+                return self._unify(src, srcEnv, destVal, destEnv, location)
             else:
-                destEnv[dest.name] = self.prolog_eval(src, srcEnv)
+                destEnv[dest.name] = self.prolog_eval(src, srcEnv, location)
                 return True                         # unifies. destination updated
 
         elif isinstance (src, Literal):
-            srcVal  = self.prolog_eval(src, srcEnv)
-            destVal = self.prolog_eval(dest, destEnv)
+            srcVal  = self.prolog_eval(src, srcEnv, location)
+            destVal = self.prolog_eval(dest, destEnv, location)
             return srcVal == destVal
             
         elif isinstance (dest, Literal):
@@ -323,7 +318,7 @@ class PrologRuntime(object):
         else:
             dde = copy.deepcopy(destEnv)
             for i in range(len(src.args)):
-                if not self._unify(src.args[i],srcEnv,dest.args[i],dde):
+                if not self._unify(src.args[i], srcEnv, dest.args[i], dde, location):
                     return False
             destEnv.update(dde)
             return True
@@ -364,7 +359,7 @@ class PrologRuntime(object):
                 else: 
                     parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
                     self._unify (g.head, g.env,
-                                 parent.terms[parent.inx], parent.env)
+                                 parent.terms[parent.inx], parent.env, g.location)
                     parent.inx = parent.inx+1           # advance to next goal in body
                     self.queue.insert(0, parent)        # let it wait its turn
 
@@ -379,7 +374,7 @@ class PrologRuntime(object):
                 else: 
                     parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
                     self._unify (g.head, g.env,
-                                 parent.terms[parent.inx], parent.env)
+                                 parent.terms[parent.inx], parent.env, g.location)
                     g = parent
                     succeed = False
 
@@ -414,7 +409,7 @@ class PrologRuntime(object):
         else:
             raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
 
-        self.queue     = [ PrologGoal (clause.head, terms, env=env) ]
+        self.queue     = [ PrologGoal (clause.head, terms, env=env, location=clause.location) ]
         self.solutions = []
 
         while self.queue :
@@ -433,8 +428,8 @@ class PrologRuntime(object):
             if name in builtin_specials:
                 if name == 'is' :
 
-                    ques = self.prolog_eval(pred.args[0], g.env)
-                    ans  = self.prolog_eval(pred.args[1], g.env)
+                    ques = self.prolog_eval(pred.args[0], g.env, g.location)
+                    ans  = self.prolog_eval(pred.args[1], g.env, g.location)
 
                     if ques == None :
                         g.env[pred.args[0].name] = ans  # Set variable
@@ -485,7 +480,7 @@ class PrologRuntime(object):
                         for b in bindings:
                             new_env = copy.deepcopy(g.env)
                             new_env.update(b)
-                            self.queue.insert(0, PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx))
+                            self.queue.insert(0, PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx, location=g.location))
 
                     else:
                         self.queue.insert (0, g)
@@ -512,11 +507,11 @@ class PrologRuntime(object):
                 # queue up child subgoal
 
                 if clause.body:
-                    child = PrologGoal(clause.head, [clause.body], g)
+                    child = PrologGoal(clause.head, [clause.body], g, location=clause.location)
                 else:
-                    child = PrologGoal(clause.head, [], g)
+                    child = PrologGoal(clause.head, [], g, location=clause.location)
 
-                ans = self._unify (pred, g.env, clause.head, child.env)
+                ans = self._unify (pred, g.env, clause.head, child.env, g.location)
                 if ans:                             # if unifies, queue it up
                     self.queue.insert(0, child)
                     # logging.debug ("Queue %s" % str(child))

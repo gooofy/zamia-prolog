@@ -38,8 +38,8 @@ def builtin_cmp_op(g, op, rt):
     if len(args) != 2:
         raise PrologRuntimeError('cmp_op: 2 args expected.')
 
-    a = rt.prolog_get_literal(args[0], g.env)
-    b = rt.prolog_get_literal(args[1], g.env)
+    a = rt.prolog_get_literal(args[0], g.env, g.location)
+    b = rt.prolog_get_literal(args[1], g.env, g.location)
 
     res = op(a,b)
 
@@ -69,13 +69,13 @@ def builtin_date_time_stamp(g, rt):
     if not isinstance(args[0], Predicate) or not args[0].name == 'date' or len(args[0].args) != 7:
         raise PrologRuntimeError('date_time_stamp: arg0: date structure expected.')
 
-    arg_Y   = rt.prolog_get_int(args[0].args[0], g.env)
-    arg_M   = rt.prolog_get_int(args[0].args[1], g.env)
-    arg_D   = rt.prolog_get_int(args[0].args[2], g.env)
-    arg_H   = rt.prolog_get_int(args[0].args[3], g.env)
-    arg_Mn  = rt.prolog_get_int(args[0].args[4], g.env)
-    arg_S   = rt.prolog_get_int(args[0].args[5], g.env)
-    arg_TZ  = rt.prolog_get_string(args[0].args[6], g.env)
+    arg_Y   = rt.prolog_get_int(args[0].args[0], g.env, g.location)
+    arg_M   = rt.prolog_get_int(args[0].args[1], g.env, g.location)
+    arg_D   = rt.prolog_get_int(args[0].args[2], g.env, g.location)
+    arg_H   = rt.prolog_get_int(args[0].args[3], g.env, g.location)
+    arg_Mn  = rt.prolog_get_int(args[0].args[4], g.env, g.location)
+    arg_S   = rt.prolog_get_int(args[0].args[5], g.env, g.location)
+    arg_TZ  = rt.prolog_get_string(args[0].args[6], g.env, g.location)
 
     #if pe.trace:
     #    print "BUILTIN date_time_stamp called, Y=%s M=%s D=%s H=%s Mn=%s S=%s TZ=%s" % ( str(arg_Y), str(arg_M), str(arg_D), str(arg_H), str(arg_Mn), str(arg_S), str(arg_TZ))
@@ -103,7 +103,7 @@ def builtin_get_time(g, rt):
     if len(args) != 1:
         raise PrologRuntimeError('get_time: 1 arg expected.')
 
-    arg_T   = rt.prolog_get_variable(args[0], g.env)
+    arg_T   = rt.prolog_get_variable(args[0], g.env, g.location)
 
     dt = datetime.datetime.now()
     g.env[arg_T] = NumberLiteral(time.mktime(dt.timetuple()))
@@ -124,17 +124,17 @@ def builtin_stamp_date_time(g, rt):
         raise PrologRuntimeError('stamp_date_time: arg1: date structure expected.')
 
     try:
-        arg_Y   = rt.prolog_get_variable(args[1].args[0], g.env)
-        arg_M   = rt.prolog_get_variable(args[1].args[1], g.env)
-        arg_D   = rt.prolog_get_variable(args[1].args[2], g.env)
-        arg_H   = rt.prolog_get_variable(args[1].args[3], g.env)
-        arg_Mn  = rt.prolog_get_variable(args[1].args[4], g.env)
-        arg_S   = rt.prolog_get_variable(args[1].args[5], g.env)
-        arg_TZ  = rt.prolog_get_string(args[1].args[6], g.env)
+        arg_Y   = rt.prolog_get_variable(args[1].args[0], g.env, g.location)
+        arg_M   = rt.prolog_get_variable(args[1].args[1], g.env, g.location)
+        arg_D   = rt.prolog_get_variable(args[1].args[2], g.env, g.location)
+        arg_H   = rt.prolog_get_variable(args[1].args[3], g.env, g.location)
+        arg_Mn  = rt.prolog_get_variable(args[1].args[4], g.env, g.location)
+        arg_S   = rt.prolog_get_variable(args[1].args[5], g.env, g.location)
+        arg_TZ  = rt.prolog_get_string(args[1].args[6], g.env, g.location)
 
         tz = get_localzone() if arg_TZ == 'local' else pytz.timezone(arg_TZ)
 
-        arg_TS  = rt.prolog_get_float(args[0], g.env)
+        arg_TS  = rt.prolog_get_float(args[0], g.env, g.location)
 
         dt = datetime.datetime.fromtimestamp(arg_TS, tz)
 
@@ -159,11 +159,11 @@ def builtin_sub_string(g, rt):
     if len(args) != 5:
         raise PrologRuntimeError('sub_string: 5 args expected.')
 
-    arg_String    = rt.prolog_get_string(args[0], g.env)
-    arg_Before    = rt.prolog_eval(args[1], g.env)
-    arg_Length    = rt.prolog_eval(args[2], g.env) 
-    arg_After     = rt.prolog_eval(args[3], g.env)  
-    arg_SubString = rt.prolog_eval(args[4], g.env)  
+    arg_String    = rt.prolog_get_string(args[0], g.env, g.location)
+    arg_Before    = rt.prolog_eval(args[1], g.env, g.location)
+    arg_Length    = rt.prolog_eval(args[2], g.env, g.location) 
+    arg_After     = rt.prolog_eval(args[3], g.env, g.location)  
+    arg_SubString = rt.prolog_eval(args[4], g.env, g.location)  
 
     # FIXME: implement other variants
     if arg_Before:
@@ -181,14 +181,14 @@ def builtin_sub_string(g, rt):
                 raise PrologRuntimeError('sub_string: FIXME: arg_After required to be a variable for now.')
             else:
 
-                var_After = rt.prolog_get_variable(args[3], g.env)
+                var_After = rt.prolog_get_variable(args[3], g.env, g.location)
                 if var_After != '_':
                     g.env[var_After] = NumberLiteral(len(arg_String) - before - length)
 
                 if arg_SubString:
                     raise PrologRuntimeError('sub_string: FIXME: arg_SubString required to be a variable for now.')
                 else:
-                    var_SubString = rt.prolog_get_variable(args[4], g.env)
+                    var_SubString = rt.prolog_get_variable(args[4], g.env, g.location)
 
                     if var_SubString != '_':
                         g.env[var_SubString] = StringLiteral(arg_String[before:before + length])
@@ -209,8 +209,8 @@ def builtin_atom_chars(g, rt):
     if len(args) != 2:
         raise PrologRuntimeError('atom_chars: 2 args expected.')
 
-    arg_atom   = rt.prolog_eval(args[0], g.env)
-    arg_str    = rt.prolog_eval(args[1], g.env)
+    arg_atom   = rt.prolog_eval(args[0], g.env, g.location)
+    arg_str    = rt.prolog_eval(args[1], g.env, g.location)
 
     if not arg_atom and not arg_str:
         raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.')
@@ -230,7 +230,7 @@ def builtin_write(g, rt):
 
     term = g.terms[g.inx].args[0]
 
-    t = rt.prolog_eval(term, g.env)
+    t = rt.prolog_eval(term, g.env, g.location)
 
     if isinstance (t, StringLiteral):
         sys.stdout.write(t.s)
@@ -257,8 +257,8 @@ def builtin_list_contains(g, rt):
     if len(args) != 2:
         raise PrologRuntimeError('list_contains: 2 args expected.')
 
-    arg_list   = rt.prolog_get_list (args[0], g.env)
-    arg_needle = rt.prolog_eval(args[1], g.env)
+    arg_list   = rt.prolog_get_list (args[0], g.env, g.location)
+    arg_needle = rt.prolog_eval(args[1], g.env, g.location)
 
     for o in arg_list.l:
         if o == arg_needle:
@@ -276,9 +276,9 @@ def builtin_list_nth(g, rt):
     if len(args) != 3:
         raise PrologRuntimeError('list_nth: 3 args (index, list, elem) expected.')
 
-    arg_idx  = rt.prolog_get_int  (args[0], g.env)
-    arg_list = rt.prolog_get_list (args[1], g.env)
-    arg_elem = rt.prolog_eval     (args[2], g.env)
+    arg_idx  = rt.prolog_get_int  (args[0], g.env, g.location)
+    arg_list = rt.prolog_get_list (args[1], g.env, g.location)
+    arg_elem = rt.prolog_eval     (args[2], g.env, g.location)
     if not arg_elem:
         arg_elem = args[2]
 
@@ -299,10 +299,10 @@ def builtin_list_slice(g, rt):
     if len(args) != 4:
         raise PrologRuntimeError('list_slice: 4 args (idx1, idx2, list, slice) expected.')
 
-    arg_idx1  = rt.prolog_get_int  (args[0], g.env)
-    arg_idx2  = rt.prolog_get_int  (args[1], g.env)
-    arg_list  = rt.prolog_get_list (args[2], g.env)
-    arg_slice = rt.prolog_eval     (args[3], g.env)
+    arg_idx1  = rt.prolog_get_int  (args[0], g.env, g.location)
+    arg_idx2  = rt.prolog_get_int  (args[1], g.env, g.location)
+    arg_list  = rt.prolog_get_list (args[2], g.env, g.location)
+    arg_slice = rt.prolog_eval     (args[3], g.env, g.location)
     if not arg_slice:
         arg_slice = args[3]
 
@@ -317,16 +317,16 @@ def builtin_list_slice(g, rt):
 # functions
 #
 
-def builtin_format_str(pred, env, rt):
+def builtin_format_str(pred, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION format_str', env)
 
     args  = pred.args
-    arg_F = rt.prolog_get_string(args[0], env)
+    arg_F = rt.prolog_get_string(args[0], env, location)
 
     if len(args)>1:
         
-        a = map(lambda x: rt.prolog_get_literal(x, env), args[1:])
+        a = map(lambda x: rt.prolog_get_literal(x, env, location), args[1:])
 
         f_str = arg_F % tuple(a)
 
@@ -336,7 +336,7 @@ def builtin_format_str(pred, env, rt):
 
     return StringLiteral(f_str)
 
-def builtin_isoformat(pred, env, rt):
+def builtin_isoformat(pred, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION isoformat', env)
 
@@ -344,8 +344,8 @@ def builtin_isoformat(pred, env, rt):
     if len(args) != 2:
         raise PrologRuntimeError('isoformat: 2 args expected.')
 
-    arg_TS  = rt.prolog_get_float (args[0], env)
-    arg_TZ  = rt.prolog_get_string(args[1], env)
+    arg_TS  = rt.prolog_get_float (args[0], env, location)
+    arg_TZ  = rt.prolog_get_string(args[1], env, location)
 
     tz = get_localzone() if arg_TZ == 'local' else pytz.timezone(arg_TZ)
 
@@ -353,13 +353,13 @@ def builtin_isoformat(pred, env, rt):
 
     return StringLiteral(dt.isoformat())
 
-def _builtin_list_lambda (pred, env, rt, l):
+def _builtin_list_lambda (pred, env, rt, l, location):
 
     args = pred.args
     if len(args) != 1:
         raise PrologRuntimeError('list builtin fn: 1 arg expected.')
 
-    arg_list = rt.prolog_get_list (args[0], env)
+    arg_list = rt.prolog_get_list (args[0], env, location)
 
     res = reduce(l, arg_list.l)
     return res, arg_list.l
@@ -368,34 +368,34 @@ def _builtin_list_lambda (pred, env, rt, l):
     # else:
     #     return StringLiteral(unicode(res))
 
-def builtin_list_max(pred, env, rt):
+def builtin_list_max(pred, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_max', env)
 
-    return _builtin_list_lambda (pred, env, rt, lambda x, y: x if x > y else y)[0]
+    return _builtin_list_lambda (pred, env, rt, lambda x, y: x if x > y else y, location)[0]
 
-def builtin_list_min(pred, env, rt):
+def builtin_list_min(pred, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_min', env)
 
-    return _builtin_list_lambda (pred, env, rt, lambda x, y: x if x < y else y)[0]
+    return _builtin_list_lambda (pred, env, rt, lambda x, y: x if x < y else y, location)[0]
 
-def builtin_list_sum(pred, env, rt):
+def builtin_list_sum(pred, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_sum', env)
 
-    return _builtin_list_lambda (pred, env, rt, lambda x, y: x + y)[0]
+    return _builtin_list_lambda (pred, env, rt, lambda x, y: x + y, location)[0]
 
-def builtin_list_avg(pred, env, rt):
+def builtin_list_avg(pred, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_avg', env)
 
-    l_sum, l = _builtin_list_lambda (pred, env, rt, lambda x, y: x + y)
+    l_sum, l = _builtin_list_lambda (pred, env, rt, lambda x, y: x + y, location)
 
     assert len(l)>0
     return l_sum / NumberLiteral(float(len(l)))
 
-def builtin_list_len(pred, env, rt):
+def builtin_list_len(pred, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_len', env)
 
@@ -403,6 +403,6 @@ def builtin_list_len(pred, env, rt):
     if len(args) != 1:
         raise PrologRuntimeError('list builtin fn: 1 arg expected.')
 
-    arg_list = rt.prolog_get_list (args[0], env)
+    arg_list = rt.prolog_get_list (args[0], env, location)
     return NumberLiteral(len(arg_list.l))
 

@@ -613,7 +613,7 @@ class PrologParser(object):
         self.start (StringIO(line), '<str>')
         body = self.clause_body()
 
-        return Clause (None, body)
+        return Clause (None, body, location=self.get_location())
 
     def parse_line_clauses (self, line):
 

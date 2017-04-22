@@ -43,8 +43,8 @@ def record_move(g, rt):
     if len(args) != 2:
         raise PrologRuntimeError('record_move: 2 args expected.')
 
-    arg_from  = rt.prolog_eval(args[0], g.env)
-    arg_to    = rt.prolog_eval(args[1], g.env) 
+    arg_from  = rt.prolog_eval(args[0], g.env, g.location)
+    arg_to    = rt.prolog_eval(args[1], g.env, g.location) 
 
     recorded_moves.append((arg_from, arg_to))
         
@@ -61,8 +61,8 @@ def multi_binder(g, rt):
     if len(args) != 2:
         raise PrologRuntimeError('multi_binder: 2 args expected.')
 
-    var_x  = rt.prolog_get_variable(args[0], g.env)
-    var_y  = rt.prolog_get_variable(args[1], g.env) 
+    var_x  = rt.prolog_get_variable(args[0], g.env, g.location)
+    var_y  = rt.prolog_get_variable(args[1], g.env, g.location) 
 
     res = []
     for x in range(2):
