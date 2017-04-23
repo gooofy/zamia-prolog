@@ -23,6 +23,7 @@
 
 import logging
 import json
+from errors import PrologError
 
 class JSONLogic:
 
@@ -30,7 +31,7 @@ class JSONLogic:
         for JSON (de)-serialization """
 
     def to_dict(self):
-        raise Exception ("to_dict is not implemented, but should be!")
+        raise PrologError ("to_dict is not implemented, but should be!")
 
 class SourceLocation(JSONLogic):
 
@@ -361,7 +362,7 @@ def _prolog_from_json(o):
     if o['pt'] == 'SourceLocation':
         return SourceLocation (json_dict=o)
 
-    raise PrologRuntimeError('cannot convert from json: %s .' % repr(o))
+    raise PrologError('cannot convert from json: %s .' % repr(o))
 
 def json_to_prolog(jstr):
     return json.JSONDecoder(object_hook = _prolog_from_json).decode(jstr)
