@@ -37,7 +37,7 @@ class ORMClause(Base):
     module            = Column(String(255), index=True)
     head              = Column(String(255), index=True)
     arity             = Column(Integer, index=True) 
-    prolog            = Column(UnicodeText)
+    prolog            = Column(Text)
   
 class ORMPredicateDoc(Base):
 

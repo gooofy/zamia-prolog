@@ -30,7 +30,6 @@ from sqlalchemy.orm import sessionmaker
 import model
 
 from logic  import *
-from parser import PrologParser
 
 class LogicDB(object):
 
@@ -40,8 +39,6 @@ class LogicDB(object):
         self.Session = sessionmaker(bind=self.engine)
         self.session  = self.Session()
         model.Base.metadata.create_all(self.engine)
-
-        self.parser   = PrologParser()
 
     def commit(self):
         logging.info("commit.")
@@ -72,7 +69,7 @@ class LogicDB(object):
         ormc = model.ORMClause(module    = module,
                                arity     = len(clause.head.args), 
                                head      = clause.head.name, 
-                               prolog    = unicode(clause))
+                               prolog    = prolog_to_json(clause))
 
         # print unicode(clause)
 
@@ -96,8 +93,7 @@ class LogicDB(object):
 
         for ormc in self.session.query(model.ORMClause).filter(model.ORMClause.head==name).all():
 
-            for c in self.parser.parse_line_clauses(ormc.prolog):
-                res.append (c)
+            res.append (json_to_prolog(ormc.prolog))
         
         return res
 

@@ -22,15 +22,27 @@
 #
 
 import logging
-import datetime
-from dateutil.tz import tzlocal
+import json
 
-class SourceLocation:
+class JSONLogic:
 
-    def __init__ (self, fn, line, col):
-        self.fn   = fn
-        self.line = line
-        self.col  = col
+    """ just a base class that indicates to_dict() and __init__(json_dict) are supported
+        for JSON (de)-serialization """
+
+    def to_dict(self):
+        raise Exception ("to_dict is not implemented, but should be!")
+
+class SourceLocation(JSONLogic):
+
+    def __init__ (self, fn=None, line=None, col=None, json_dict=None):
+        if json_dict:
+            self.fn   = json_dict['fn']
+            self.line = json_dict['line']
+            self.col  = json_dict['col']
+        else:
+            self.fn   = fn
+            self.line = line
+            self.col  = col
 
     def __str__(self):
         return '%s: line=%d, col=%d' % (self.fn, self.line, self.col)
@@ -41,7 +53,10 @@ class SourceLocation:
     def __repr__(self):
         return 'SourceLocation(fn=%s, line=%d, col=%d)' % (self.fn, self.line, self.col)
 
-class Literal:
+    def to_dict(self):
+        return {'pt': 'SourceLocation', 'fn': self.fn, 'line': self.line, 'col': self.col}
+
+class Literal(JSONLogic):
 
     def __unicode__(self):
         return "<LITERAL>"
@@ -51,8 +66,11 @@ class Literal:
 
 class StringLiteral(Literal):
 
-    def __init__(self, s):
-        self.s = s
+    def __init__(self, s=None, json_dict=None):
+        if json_dict:
+            self.s = json_dict['s']
+        else:
+            self.s = s
 
     def __unicode__(self):
         return '"' + self.s + '"'
@@ -91,10 +109,16 @@ class StringLiteral(Literal):
     def __repr__(self):
         return u'StringLiteral(' + repr(self.s) + ')'
 
+    def to_dict(self):
+        return {'pt': 'StringLiteral', 's': self.s}
+
 class NumberLiteral(Literal):
 
-    def __init__(self, f):
-        self.f = f
+    def __init__(self, f=None, json_dict=None):
+        if json_dict:
+            self.f = json_dict['f']
+        else:
+            self.f = f
 
     def __unicode__(self):
         return unicode(self.f)
@@ -138,10 +162,16 @@ class NumberLiteral(Literal):
     def get_literal(self):
         return self.f
 
+    def to_dict(self):
+        return {'pt': 'NumberLiteral', 'f': self.f}
+
 class ListLiteral(Literal):
 
-    def __init__(self, l):
-        self.l = l
+    def __init__(self, l=None, json_dict=None):
+        if json_dict:
+            self.l = json_dict['l']
+        else:
+            self.l = l
 
     def __unicode__(self):
         return repr(self.l)
@@ -172,21 +202,22 @@ class ListLiteral(Literal):
     def __repr__(self):
         return repr(self.l)
 
-class Variable(object):
+    def to_dict(self):
+        return {'pt': 'ListLiteral', 'l': self.l}
 
-    counter = 0 
-    @staticmethod
-    def get_unused_var():
-        v = Var('_var%d' % Var.counter)
-        Var.counter += 1
-        return v
+class Variable(JSONLogic):
 
-    def __init__(self, name, row = False):
-        self.name = name
-        self.row  = row
+    def __init__(self, name=None, json_dict=None):
+        if json_dict:
+            self.name = json_dict['name']
+        else:
+            self.name = name
   
+    def __str__(self):
+        return self.name.encode('utf8')
+
     def __unicode__(self):
-        return '@' + self.name if self.row else self.name
+        return self.name
 
     def __eq__(self, other):
         return isinstance(other, Variable) and other.name == self.name
@@ -194,12 +225,20 @@ class Variable(object):
     def __hash__(self):
         return hash(self.name)
 
-class Predicate:
+    def to_dict(self):
+        return {'pt': 'Variable', 'name': self.name}
 
-    def __init__(self, name, args=None, uri = None):
-        self.name  = name
-        self.args  = args if args else []
-        self.uri   = uri 
+class Predicate(JSONLogic):
+
+    def __init__(self, name=None, args=None, json_dict=None):
+
+        if json_dict:
+            self.name  = json_dict['name']
+            self.args  = json_dict['args']
+
+        else:
+            self.name  = name
+            self.args  = args if args else []
   
     def __str__(self):
         return unicode(self).encode('utf8')
@@ -224,12 +263,25 @@ class Predicate:
                 and self.name == other.name
                 and list(self.args) == list(other.args))
 
-class Clause:
+    def to_dict(self):
+        return {'pt'  : 'Predicate', 
+                'name': self.name, 
+                'args': map(lambda a: a.to_dict(), self.args)
+               }
 
-    def __init__(self, head, body=None, location=None):
-        self.head     = head
-        self.body     = body
-        self.location = location
+class Clause(JSONLogic):
+
+    def __init__(self, head=None, body=None, location=None, json_dict=None):
+        if json_dict:
+            self.head     = json_dict['head'] 
+            b = json_dict['body']
+            self.body     = None if b =='None' else b
+            l = json_dict['location']
+            self.location = None if l == 'None' else l
+        else:
+            self.head     = head
+            self.body     = body
+            self.location = location
 
     def __str__(self):
         if self.body:
@@ -249,6 +301,12 @@ class Clause:
                 and self.head == other.head
                 and list(self.body) == list(other.body))
 
+    def to_dict(self):
+        return {'pt'      : 'Clause', 
+                'head'    : self.head.to_dict(),
+                'body'    : self.body.to_dict() if self.body else 'None',
+                'location': self.location.to_dict(),
+               }
 
 class MacroCall:
 
@@ -264,4 +322,49 @@ class MacroCall:
 
     def __repr__(self):
         return 'MacroCall(%s, %s)' % (self.name, self.pred)
+
+#
+# JSON interface
+#
+
+class PrologJSONEncoder(json.JSONEncoder):
+
+    def default(self, o):
+        
+        if isinstance (o, JSONLogic):
+            return o.to_dict()
+
+        return json.JSONEncoder.default(self, o)
+
+_prolog_json_encoder = PrologJSONEncoder()
+
+def prolog_to_json(pl):
+    return _prolog_json_encoder.encode(pl)
+
+def _prolog_from_json(o):
+
+    # import pdb; pdb.set_trace()
+
+    if o == 'None':
+        return None
+
+    if o['pt'] == 'Clause':
+        return Clause(json_dict=o)
+    if o['pt'] == 'Predicate':
+        return Predicate(json_dict=o)
+    if o['pt'] == 'StringLiteral':
+        return StringLiteral (json_dict=o)
+    if o['pt'] == 'NumberLiteral':
+        return NumberLiteral (json_dict=o)
+    if o['pt'] == 'ListLiteral':
+        return ListLiteral (json_dict=o)
+    if o['pt'] == 'Variable':
+        return Variable (json_dict=o)
+    if o['pt'] == 'SourceLocation':
+        return SourceLocation (json_dict=o)
+
+    raise PrologRuntimeError('cannot convert from json: %s .' % repr(o))
+
+def json_to_prolog(jstr):
+    return json.JSONDecoder(object_hook = _prolog_from_json).decode(jstr)
 
