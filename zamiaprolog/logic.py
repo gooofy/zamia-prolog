@@ -274,10 +274,8 @@ class Clause(JSONLogic):
     def __init__(self, head=None, body=None, location=None, json_dict=None):
         if json_dict:
             self.head     = json_dict['head'] 
-            b = json_dict['body']
-            self.body     = None if b =='None' else b
-            l = json_dict['location']
-            self.location = None if l == 'None' else l
+            self.body     = json_dict['body']
+            self.location = json_dict['location']
         else:
             self.head     = head
             self.body     = body
@@ -304,7 +302,7 @@ class Clause(JSONLogic):
     def to_dict(self):
         return {'pt'      : 'Clause', 
                 'head'    : self.head.to_dict(),
-                'body'    : self.body.to_dict() if self.body else 'None',
+                'body'    : self.body.to_dict() if self.body else None,
                 'location': self.location.to_dict(),
                }
 
@@ -345,7 +343,7 @@ def _prolog_from_json(o):
 
     # import pdb; pdb.set_trace()
 
-    if o == 'None':
+    if o == None:
         return None
 
     if o['pt'] == 'Clause':
