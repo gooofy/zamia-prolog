@@ -60,6 +60,7 @@ class PrologGoal:
     def __init__ (self, head, terms, parent=None, env={}, negate=False, inx=0, location=None) :
 
         assert type(terms) is list
+        assert location
 
         self.head     = head
         self.terms    = terms
@@ -454,12 +455,12 @@ class PrologRuntime(object):
 
                     for subgoal in pred.args:
                         # logging.debug ('    subgoal: %s' % subgoal)
-                        self.queue.insert(0, PrologGoal(pred, [subgoal], g, env=g.env))
+                        self.queue.insert(0, PrologGoal(pred, [subgoal], g, env=g.env, location=g.location))
 
                     continue
 
                 elif name == 'and':
-                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env))
+                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, location=g.location))
                     continue
 
                 g.inx = g.inx + 1               # Succeed. resume self.
