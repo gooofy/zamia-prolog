@@ -97,6 +97,10 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['E'].l[0].f, 2.0)
         self.assertEqual (solutions[0]['E'].l[1].f, 3.0)
 
+        clause = self.parser.parse_line_clause_body('X is ["1","2","3","4"], list_str_join("@", X, Y).')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['Y'].s, "1@2@3@4")
+
     # @unittest.skip("temporarily disabled")
     def test_strings(self):
 

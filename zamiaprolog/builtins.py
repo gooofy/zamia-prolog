@@ -291,13 +291,15 @@ def builtin_list_nth(g, rt):
 
 def builtin_list_slice(g, rt):
 
+    """ list_slice (-Idx1, -Idx2, -List, +Slice) """
+
     rt._trace_fn ('CALLED BUILTIN list_slice', g)
 
     pred = g.terms[g.inx]
 
     args = pred.args
     if len(args) != 4:
-        raise PrologRuntimeError('list_slice: 4 args (idx1, idx2, list, slice) expected.')
+        raise PrologRuntimeError('list_slice: 4 args (-Idx1, -Idx2, -List, +Slice) expected.', g.location)
 
     arg_idx1  = rt.prolog_get_int  (args[0], g.env, g.location)
     arg_idx2  = rt.prolog_get_int  (args[1], g.env, g.location)
@@ -307,9 +309,34 @@ def builtin_list_slice(g, rt):
         arg_slice = args[3]
 
     if not isinstance(arg_slice, Variable):
-        raise PrologRuntimeError('list_slice: 4th arg has to be an unbound variable for now, %s found instead.' % repr(arg_slice))
+        raise PrologRuntimeError('list_slice: 4th arg has to be an unbound variable for now, %s found instead.' % repr(arg_slice), g.location)
 
     g.env[arg_slice.name] = ListLiteral(arg_list.l[arg_idx1:arg_idx2])
+
+    return True
+
+def builtin_list_str_join(g, rt):
+
+    """ list_str_join (+Glue, +List, -Str) """
+
+    rt._trace_fn ('CALLED BUILTIN list_str_join', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 3:
+        raise PrologRuntimeError('list_str_join: 3 args (+Glue, +List, -Str) expected.', g.location)
+
+    arg_glue  = rt.prolog_get_string (args[0], g.env, g.location)
+    arg_list  = rt.prolog_get_list   (args[1], g.env, g.location)
+    arg_str   = rt.prolog_eval       (args[2], g.env, g.location)
+    if not arg_str:
+        arg_str = args[2]
+
+    if not isinstance(arg_str, Variable):
+        raise PrologRuntimeError('list_str_join: 3rd arg has to be an unbound variable for now, %s found instead.' % repr(arg_slice), g.location)
+
+    g.env[arg_str.name] = StringLiteral(arg_glue.join(map(lambda a: unicode(a), arg_list.l)))
 
     return True
 
