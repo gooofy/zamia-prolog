@@ -336,7 +336,7 @@ def builtin_list_str_join(g, rt):
     if not isinstance(arg_str, Variable):
         raise PrologRuntimeError('list_str_join: 3rd arg has to be an unbound variable for now, %s found instead.' % repr(arg_slice), g.location)
 
-    g.env[arg_str.name] = StringLiteral(arg_glue.join(map(lambda a: unicode(a), arg_list.l)))
+    g.env[arg_str.name] = StringLiteral(arg_glue.join(map(lambda a: a.s if isinstance(a, StringLiteral) else unicode(a), arg_list.l)))
 
     return True
 

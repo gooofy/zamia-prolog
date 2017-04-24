@@ -99,10 +99,10 @@ class StringLiteral(Literal):
         return self.s
 
     def __unicode__(self):
-        return self.s
+        return u'"' + unicode(self.s.replace('"', '\\"')) + u'"'
 
     def __str__(self):
-        return self.s.encode('utf8')
+        return unicode(self).encode('utf8')
 
     def __repr__(self):
         return u'StringLiteral(' + repr(self.s) + ')'
