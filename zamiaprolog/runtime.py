@@ -446,7 +446,7 @@ class PrologRuntime(object):
 
                 elif name == 'not':
                     # insert negated sub-guoal
-                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, negate=True))
+                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, negate=True, location=g.location))
                     continue
 
                 elif name == 'or':
