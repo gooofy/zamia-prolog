@@ -278,6 +278,14 @@ class PrologRuntime(object):
             raise PrologRuntimeError('Variable expected, %s found instead.' % term.__class__, location)
         return term.name
 
+    def prolog_get_constant(self, term, env, location):
+
+        t = self.prolog_eval (term, env, location)
+
+        if not isinstance(t, Predicate):
+            raise PrologRuntimeError('Constant expected, %s found instead.' % term.__class__, location)
+        return t.name
+
 
     # A Goal is a rule in at a certain point in its computation. 
     # env contains definitions (so far), inx indexes the current term
