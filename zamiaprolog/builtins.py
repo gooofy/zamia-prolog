@@ -249,7 +249,7 @@ def builtin_nl(g, rt):
 
 def builtin_list_contains(g, rt):
 
-    rt._trace_fn ('CALLED BUILTIN list_contains', g)
+    rt._trace ('CALLED BUILTIN list_contains', g)
 
     pred = g.terms[g.inx]
 
@@ -268,7 +268,7 @@ def builtin_list_contains(g, rt):
 
 def builtin_list_nth(g, rt):
 
-    rt._trace_fn ('CALLED BUILTIN list_nth', g)
+    rt._trace ('CALLED BUILTIN list_nth', g)
 
     pred = g.terms[g.inx]
 
@@ -293,7 +293,7 @@ def builtin_list_slice(g, rt):
 
     """ list_slice (-Idx1, -Idx2, -List, +Slice) """
 
-    rt._trace_fn ('CALLED BUILTIN list_slice', g)
+    rt._trace ('CALLED BUILTIN list_slice', g)
 
     pred = g.terms[g.inx]
 
@@ -319,7 +319,7 @@ def builtin_list_str_join(g, rt):
 
     """ list_str_join (+Glue, +List, -Str) """
 
-    rt._trace_fn ('CALLED BUILTIN list_str_join', g)
+    rt._trace ('CALLED BUILTIN list_str_join', g)
 
     pred = g.terms[g.inx]
 
