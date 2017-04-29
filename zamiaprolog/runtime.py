@@ -30,9 +30,10 @@ import codecs
 import re
 import copy
 
-from logic import *
-from builtins import *
-from errors import *
+from logic        import *
+from builtins     import *
+from errors       import *
+from nltools.misc import limit_str
 
 def prolog_unary_plus  (a) : return NumberLiteral(a)
 def prolog_unary_minus (a) : return NumberLiteral(-a)
@@ -77,7 +78,7 @@ class PrologGoal:
         if self.head:
             res += unicode(self.head)
         else:
-            res += 'TOP'
+            res += u'TOP'
         res += ' '
 
         for i, t in enumerate(self.terms):
@@ -343,16 +344,43 @@ class PrologRuntime(object):
         depth = goal.get_depth()
         # ind = depth * '  ' + len(label) * ' '
 
-        logging.info(u"%s %s: %s" % (depth*'  ', label, unicode(goal)))
-       
+        res = u'!' if goal.negate else u''
+
+        if goal.head:
+            res += limit_str(unicode(goal.head), 40)
+        else:
+            res += u'TOP'
+        res += ' '
+
+        for i, t in enumerate(goal.terms):
+            if i == goal.inx:
+                 res += u" -> " + limit_str(unicode(t), 40)
+
+        # indent = depth*'  ' + len(label) * ' '
+        indent = depth*'  '
+
+        logging.info(u"%s %s: %s" % (indent, label, res))
+     
+        for k in sorted(goal.env):
+            logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(goal.env[k]), 40)))
+            
+        # import pdb; pdb.set_trace()
+
+        # res += u'env=%s' % unicode(self.env)
         
     def _trace_fn (self, label, env):
 
         if not self.trace:
             return
 
-        print u"%s %s: %s" % ('              ', label, repr(env))
+        indent = '              '
 
+        logging.info(u"%s %s" % (indent, label))
+     
+        # import pdb; pdb.set_trace()
+
+        for k in sorted(env):
+            logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(env[k]), 40)))
 
     def _finish_goal (self, g, succeed):
 
