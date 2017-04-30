@@ -90,7 +90,7 @@ def builtin_date_time_stamp(g, rt):
         raise PrologRuntimeError('date_time_stamp: arg1: variable already bound.')
     
     dt = datetime.datetime(arg_Y, arg_M, arg_D, arg_H, arg_Mn, arg_S, tzinfo=tz)
-    g.env[args[1].name] = NumberLiteral(time.mktime(dt.timetuple()))
+    g.env[args[1].name] = StringLiteral(dt.isoformat())
 
     return True
 
@@ -106,7 +106,7 @@ def builtin_get_time(g, rt):
     arg_T   = rt.prolog_get_variable(args[0], g.env, g.location)
 
     dt = datetime.datetime.now()
-    g.env[arg_T] = NumberLiteral(time.mktime(dt.timetuple()))
+    g.env[arg_T] = StringLiteral(dt.isoformat())
 
     return True
 
@@ -134,9 +134,10 @@ def builtin_stamp_date_time(g, rt):
 
         tz = get_localzone() if arg_TZ == 'local' else pytz.timezone(arg_TZ)
 
-        arg_TS  = rt.prolog_get_float(args[0], g.env, g.location)
+        arg_TS  = rt.prolog_get_string(args[0], g.env, g.location)
 
-        dt = datetime.datetime.fromtimestamp(arg_TS, tz)
+        #dt = datetime.datetime.fromtimestamp(arg_TS, tz)
+        dt = dateutil.parser.parse(arg_TS).astimezone(tz)
 
         g.env[arg_Y]  = NumberLiteral(dt.year)
         g.env[arg_M]  = NumberLiteral(dt.month)
@@ -362,23 +363,6 @@ def builtin_format_str(pred, env, rt, location):
         f_str = arg_F
 
     return StringLiteral(f_str)
-
-def builtin_isoformat(pred, env, rt, location):
-
-    rt._trace_fn ('CALLED FUNCTION isoformat', env)
-
-    args = pred.args
-    if len(args) != 2:
-        raise PrologRuntimeError('isoformat: 2 args expected.')
-
-    arg_TS  = rt.prolog_get_float (args[0], env, location)
-    arg_TZ  = rt.prolog_get_string(args[1], env, location)
-
-    tz = get_localzone() if arg_TZ == 'local' else pytz.timezone(arg_TZ)
-
-    dt = datetime.datetime.fromtimestamp(arg_TS, tz)
-
-    return StringLiteral(dt.isoformat())
 
 def _builtin_list_lambda (pred, env, rt, l, location):
 

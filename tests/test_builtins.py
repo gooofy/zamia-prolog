@@ -122,7 +122,7 @@ class TestBuiltins (unittest.TestCase):
 
         clause = self.parser.parse_line_clause_body('get_time(T)')
         solutions = self.rt.search(clause)
-        self.assertGreater (solutions[0]['T'].f, 10000)
+        self.assertGreater (solutions[0]['T'].s, '2017-04-30T23:39:29.092271')
 
         clause = self.parser.parse_line_clause_body('date_time_stamp(date(2017,2,14,1,2,3,\'local\'), TS), stamp_date_time(TS, date(Y,M,D,H,Mn,S,\'local\'))')
         solutions = self.rt.search(clause)
@@ -133,9 +133,9 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['Mn'].f, 2)
         self.assertEqual (solutions[0]['S'].f,  3)
 
-        clause = self.parser.parse_line_clause_body('date_time_stamp(date(2017,2,14,1,2,3,\'Europe/Berlin\'), TS), S is isoformat(TS,\'Europe/Berlin\')')
+        clause = self.parser.parse_line_clause_body('date_time_stamp(date(2017,2,14,1,2,3,\'Europe/Berlin\'), TS)')
         solutions = self.rt.search(clause)
-        self.assertEqual (solutions[0]['S'].s, '2017-02-14T01:02:03+01:00')
+        self.assertEqual (solutions[0]['TS'].s, '2017-02-14T01:02:03+01:00')
 
     # @unittest.skip("temporarily disabled")
     def test_arith(self):

@@ -155,7 +155,6 @@ class PrologRuntime(object):
         #
 
         self.register_builtin_function ('format_str', builtin_format_str)
-        self.register_builtin_function ('isoformat',  builtin_isoformat)
 
         # lists
 
