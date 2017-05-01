@@ -316,6 +316,28 @@ def builtin_list_slice(g, rt):
 
     return True
 
+def builtin_list_append(g, rt):
+
+    """ list_append (?List, +Element) """
+
+    rt._trace ('CALLED BUILTIN list_append', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('list_append: 2 args (?List, +Element) expected.', g.location)
+
+    arg_list    = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_element = rt.prolog_eval         (args[1], g.env, g.location)
+
+    if not arg_list in g.env:
+        g.env[arg_list] = ListLiteral([])
+
+    g.env[arg_list].l.append(arg_element)
+
+    return True
+
 def builtin_list_str_join(g, rt):
 
     """ list_str_join (+Glue, +List, -Str) """
