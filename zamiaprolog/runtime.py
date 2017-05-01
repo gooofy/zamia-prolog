@@ -362,7 +362,7 @@ class PrologRuntime(object):
         logging.info(u"%s %s: %s" % (indent, label, res))
      
         for k in sorted(goal.env):
-            logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(goal.env[k]), 40)))
+            logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(goal.env[k]), 80)))
             
         # import pdb; pdb.set_trace()
 
@@ -380,7 +380,7 @@ class PrologRuntime(object):
         # import pdb; pdb.set_trace()
 
         for k in sorted(env):
-            logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(env[k]), 40)))
+            logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(env[k]), 80)))
 
     def _finish_goal (self, g, succeed):
 
