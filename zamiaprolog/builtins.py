@@ -26,10 +26,12 @@ import datetime
 import dateutil.parser
 import time
 import pytz # $ pip install pytz
-from tzlocal import get_localzone # $ pip install tzlocal
 
-from logic import *
-from errors import *
+from tzlocal import get_localzone # $ pip install tzlocal
+from copy    import deepcopy
+
+from logic   import *
+from errors  import *
 
 def builtin_cmp_op(g, op, rt):
 
@@ -332,9 +334,11 @@ def builtin_list_append(g, rt):
     arg_element = rt.prolog_eval         (args[1], g.env, g.location)
 
     if not arg_list in g.env:
-        g.env[arg_list] = ListLiteral([])
-
-    g.env[arg_list].l.append(arg_element)
+        g.env[arg_list] = ListLiteral([arg_element])
+    else:
+        l2 = deepcopy(g.env[arg_list].l)
+        l2.append(arg_element)
+        g.env[arg_list] = ListLiteral(l2)
 
     return True
 
