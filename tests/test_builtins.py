@@ -220,10 +220,16 @@ class TestBuiltins (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_dicts(self):
 
-        clause = self.parser.parse_line_clause_body('dict_put(U, foo, 42), X is U, dict_put(X, bar, 23)')
+        clause = self.parser.parse_line_clause_body('dict_put(U, foo, 42), X is U, dict_put(X, bar, 23), dict_get(X, Y, Z), dict_get(X, foo, V)')
         solutions = self.rt.search(clause)
         self.assertEqual (len(solutions[0]['U'].d), 1)
         self.assertEqual (len(solutions[0]['X'].d), 2)
+        self.assertEqual (solutions[0]['Z'].f, 42)
+        self.assertEqual (solutions[0]['V'].f, 42)
+        self.assertEqual (solutions[1]['Z'].f, 23)
+        self.assertEqual (solutions[1]['V'].f, 42)
+
+        logging.debug(repr(solutions))
 
 
 if __name__ == "__main__":

@@ -154,6 +154,7 @@ class PrologRuntime(object):
         # dicts
 
         self.register_builtin('dict_put',        builtin_dict_put)       # dict_put (?Dict, +Key, +Value)
+        self.register_builtin('dict_get',        builtin_dict_get)       # dict_get (+Dict, ?Key, -Value)
 
         #
         # builtin functions
@@ -275,6 +276,14 @@ class PrologRuntime(object):
 
         if not isinstance(t, ListLiteral):
             raise PrologRuntimeError('List expected, %s found instead.' % term.__class__, location)
+        return t
+
+    def prolog_get_dict(self, term, env, location):
+
+        t = self.prolog_eval (term, env, location)
+
+        if not isinstance(t, DictLiteral):
+            raise PrologRuntimeError('Dict expected, %s found instead.' % term.__class__, location)
         return t
 
     def prolog_get_variable(self, term, env, location):

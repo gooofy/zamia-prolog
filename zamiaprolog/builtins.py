@@ -392,6 +392,38 @@ def builtin_dict_put(g, rt):
 
     return True
 
+def builtin_dict_get(g, rt):
+
+    """ dict_get (+Dict, ?Key, -Value) """
+
+    rt._trace ('CALLED BUILTIN dict_get', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 3:
+        raise PrologRuntimeError('dict_get: 3 args (+Dict, ?Key, -Value) expected.', g.location)
+
+    arg_dict    = rt.prolog_get_dict     (args[0], g.env, g.location)
+    arg_key     = rt.prolog_eval         (args[1], g.env, g.location)
+    arg_val     = rt.prolog_get_variable (args[2], g.env, g.location)
+
+    res = []
+
+    if not arg_key:
+
+        arg_key = rt.prolog_get_variable (args[1], g.env, g.location)
+
+        for key in arg_dict.d:
+            res.append({arg_key: StringLiteral(key), arg_val: arg_dict.d[key]})
+
+    else:
+
+        arg_key = rt.prolog_get_constant (args[1], g.env, g.location)
+        res.append({arg_val: arg_dict.d[arg_key]})
+
+    return res
+
 #
 # functions
 #
