@@ -127,6 +127,9 @@ class PrologRuntime(object):
         self.register_builtin('\\=',             builtin_non_equal)
         self.register_builtin('=',               builtin_equal)
 
+        self.register_builtin('increment',       builtin_increment) # increment (?V, +I)
+        self.register_builtin('decrement',       builtin_decrement) # decrement (?V, +I)
+
         # strings
 
         self.register_builtin('sub_string',      builtin_sub_string)

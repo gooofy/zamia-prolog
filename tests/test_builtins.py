@@ -172,6 +172,14 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['X'].f, 42)
 
+        clause = self.parser.parse_line_clause_body('X is 23, increment(X, 19)')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 42)
+
+        clause = self.parser.parse_line_clause_body('X is 42, decrement(X, 19)')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['X'].f, 23)
+
     # @unittest.skip("temporarily disabled")
     def test_comp(self):
 

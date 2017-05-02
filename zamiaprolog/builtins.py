@@ -58,6 +58,30 @@ def builtin_larger_or_equal(g, rt):  return builtin_cmp_op(g, lambda a,b: a>=b ,
 def builtin_non_equal(g, rt):        return builtin_cmp_op(g, lambda a,b: a!=b ,rt)
 def builtin_equal(g, rt):            return builtin_cmp_op(g, lambda a,b: a==b ,rt)
 
+def builtin_arith_imp(g, op, rt):
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('arith_op: 2 args expected.')
+
+    a = rt.prolog_get_variable (args[0], g.env, g.location)
+    b = rt.prolog_get_float    (args[1], g.env, g.location)
+
+    af = g.env[a].f if a in g.env else 0.0
+
+    res = NumberLiteral(op(af,b))
+
+    if rt.trace:
+        logging.info("builtin_arith_op called, a=%s, b=%s, res=%s" % (a, b, res))
+
+    g.env[a] = res
+
+    return True
+
+def builtin_increment(g, rt):       return builtin_arith_imp(g, lambda a,b: a+b ,rt)
+def builtin_decrement(g, rt):       return builtin_arith_imp(g, lambda a,b: a-b ,rt)
+
 def builtin_date_time_stamp(g, rt):
 
     # logging.debug( "builtin_date_time_stamp called, g: %s" % g)
