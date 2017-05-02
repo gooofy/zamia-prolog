@@ -171,9 +171,6 @@ class ListLiteral(Literal):
         else:
             self.l = l
 
-    def __unicode__(self):
-        return repr(self.l)
-
     def __eq__(self, other):
 
         if not isinstance(other, ListLiteral):
@@ -202,6 +199,43 @@ class ListLiteral(Literal):
 
     def to_dict(self):
         return {'pt': 'ListLiteral', 'l': self.l}
+
+class DictLiteral(Literal):
+
+    def __init__(self, d=None, json_dict=None):
+        if json_dict:
+            self.d = json_dict['d']
+        else:
+            self.d = d
+
+    def __eq__(self, other):
+
+        if not isinstance(other, DictLiteral):
+            return False
+
+        return other.d == self.d
+
+    def __ne__(self, other):
+
+        if not isinstance(other, DictLiteral):
+            return True
+
+        return other.d != self.d
+
+    def get_literal(self):
+        return self.d
+
+    def __unicode__(self):
+        return unicode(self.d)
+
+    def __str__(self):
+        return str(self.d)
+
+    def __repr__(self):
+        return repr(self.d)
+
+    def to_dict(self):
+        return {'pt': 'DictLiteral', 'd': self.d}
 
 class Variable(JSONLogic):
 
@@ -354,6 +388,8 @@ def _prolog_from_json(o):
         return NumberLiteral (json_dict=o)
     if o['pt'] == 'ListLiteral':
         return ListLiteral (json_dict=o)
+    if o['pt'] == 'DictLiteral':
+        return DictLiteral (json_dict=o)
     if o['pt'] == 'Variable':
         return Variable (json_dict=o)
     if o['pt'] == 'SourceLocation':

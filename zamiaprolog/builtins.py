@@ -367,6 +367,31 @@ def builtin_list_str_join(g, rt):
 
     return True
 
+def builtin_dict_put(g, rt):
+
+    """ dict_put (?Dict, +Key, +Value) """
+
+    rt._trace ('CALLED BUILTIN dict_put', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 3:
+        raise PrologRuntimeError('dict_put: 3 args (?Dict, +Key, +Value) expected.', g.location)
+
+    arg_dict    = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_key     = rt.prolog_get_constant (args[1], g.env, g.location)
+    arg_val     = rt.prolog_eval         (args[2], g.env, g.location)
+
+    if not arg_dict in g.env:
+        g.env[arg_dict] = DictLiteral({arg_key: arg_val})
+    else:
+        d2 = deepcopy(g.env[arg_dict].d)
+        d2[arg_key] = arg_val
+        g.env[arg_dict] = DictLiteral(d2)
+
+    return True
+
 #
 # functions
 #

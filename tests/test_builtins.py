@@ -217,6 +217,15 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (len(solutions), 1)
 
+    # @unittest.skip("temporarily disabled")
+    def test_dicts(self):
+
+        clause = self.parser.parse_line_clause_body('dict_put(U, foo, 42), X is U, dict_put(X, bar, 23)')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions[0]['U'].d), 1)
+        self.assertEqual (len(solutions[0]['X'].d), 2)
+
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)

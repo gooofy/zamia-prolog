@@ -151,6 +151,10 @@ class PrologRuntime(object):
         self.register_builtin('list_append',     builtin_list_append)    # list_append (?List, +Element)
         self.register_builtin('list_str_join',   builtin_list_str_join)  # list_str_join (+Glue, +List, -Str)
 
+        # dicts
+
+        self.register_builtin('dict_put',        builtin_dict_put)       # dict_put (?Dict, +Key, +Value)
+
         #
         # builtin functions
         #
