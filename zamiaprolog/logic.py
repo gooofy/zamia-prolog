@@ -378,6 +378,11 @@ def _prolog_from_json(o):
     if o == None:
         return None
 
+    if not 'pt' in o:
+        # import pdb; pdb.set_trace()
+        # raise PrologError('cannot convert from json: %s [pt missing] .' % repr(o))
+        return o
+
     if o['pt'] == 'Clause':
         return Clause(json_dict=o)
     if o['pt'] == 'Predicate':
