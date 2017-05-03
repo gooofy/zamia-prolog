@@ -128,7 +128,7 @@ class PrologRuntime(object):
         self.register_builtin('=',               builtin_equal)
 
         self.register_builtin('increment',       builtin_increment) # increment (?V, +I)
-        self.register_builtin('decrement',       builtin_decrement) # decrement (?V, +I)
+        self.register_builtin('decrement',       builtin_decrement) # decrement (?V, +D)
 
         # strings
 
@@ -371,6 +371,8 @@ class PrologRuntime(object):
         for i, t in enumerate(goal.terms):
             if i == goal.inx:
                  res += u" -> " + limit_str(unicode(t), 40)
+
+        res += ' [' + unicode(goal.location) + ']'
 
         # indent = depth*'  ' + len(label) * ' '
         indent = depth*'  '
