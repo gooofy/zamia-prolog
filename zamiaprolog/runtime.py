@@ -159,6 +159,11 @@ class PrologRuntime(object):
         self.register_builtin('dict_put',        builtin_dict_put)       # dict_put (?Dict, +Key, +Value)
         self.register_builtin('dict_get',        builtin_dict_get)       # dict_get (+Dict, ?Key, -Value)
 
+        # assert, rectract...
+
+        self.register_builtin('assertz',         builtin_assertz)        # assertz (+P)
+
+
         #
         # builtin functions
         #
@@ -548,7 +553,7 @@ class PrologRuntime(object):
 
             # Not special. look up in rule database
 
-            clauses = self.db.lookup(pred.name)
+            clauses = self.db.lookup(pred.name, g.env.get(ASSERT_OVERLAY_VAR_NAME))
 
             if len(clauses) == 0:
                 raise PrologRuntimeError ('Failed to find predicate "%s" !' % pred.name)

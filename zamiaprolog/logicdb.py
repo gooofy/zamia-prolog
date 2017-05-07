@@ -24,8 +24,10 @@
 import os
 import logging
 
-from sqlalchemy import create_engine
+from copy           import deepcopy, copy
+from sqlalchemy     import create_engine
 from sqlalchemy.orm import sessionmaker
+
 
 import model
 
@@ -35,10 +37,14 @@ class LogicDB(object):
 
     def __init__(self, db_url, echo=False):
 
-        self.engine = create_engine(db_url, echo=echo)
+        self.engine  = create_engine(db_url, echo=echo)
         self.Session = sessionmaker(bind=self.engine)
-        self.session  = self.Session()
+        self.session = self.Session()
         model.Base.metadata.create_all(self.engine)
+
+        # overlay for backtracking-safe assertZ support
+
+        self.overlayZ = {} # name = [clause, ...]
 
     def commit(self):
         logging.info("commit.")
@@ -82,9 +88,9 @@ class LogicDB(object):
                                      doc    = doc)
         self.session.add(ormd)
 
-    def lookup (self, name):
+    def lookup (self, name, overlayZ=None):
 
-        # FIXME: caching ?
+        # FIXME: DB caching ?
 
         # if name in self.clauses:
         #     return self.clauses[name]
@@ -95,7 +101,14 @@ class LogicDB(object):
 
             res.append (json_to_prolog(ormc.prolog))
         
+        # append overlay clauses
+
+        if overlayZ and name in overlayZ:
+            for clause in overlayZ[name]:
+                res.append(clause)
+
         return res
+
 
 # class LogicMemDB(object):
 # 

@@ -448,6 +448,38 @@ def builtin_dict_get(g, rt):
 
     return res
 
+ASSERT_OVERLAY_VAR_NAME = '__OVERLAYZ__'
+
+def builtin_assertz(g, rt):
+
+    """ assertz (+P) """
+
+    rt._trace ('CALLED BUILTIN assertz', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('assertz: 1 arg (+P) expected.', g.location)
+
+    arg_p     = rt.prolog_eval (args[0], g.env, g.location)
+
+    clause = Clause (head=arg_p, location=g.location)
+
+    name = arg_p.name
+
+    if not ASSERT_OVERLAY_VAR_NAME in g.env:
+        g.env[ASSERT_OVERLAY_VAR_NAME] = {name: [clause]}
+    else:
+        d2 = deepcopy(g.env[ASSERT_OVERLAY_VAR_NAME])
+        if name in d2:
+            d2[name].append(clause)
+        else:
+            d2[name] = [clause]
+        g.env[ASSERT_OVERLAY_VAR_NAME] = d2
+
+    return True
+
 #
 # functions
 #

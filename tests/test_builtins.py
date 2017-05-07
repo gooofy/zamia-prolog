@@ -239,6 +239,17 @@ class TestBuiltins (unittest.TestCase):
 
         logging.debug(repr(solutions))
 
+    # @unittest.skip("temporarily disabled")
+    def test_assertz(self):
+
+        clause = self.parser.parse_line_clause_body('I is ias00001, assertz(frame (I, qIsFamiliar)), frame (ias00001, X)')
+        solutions = self.rt.search(clause)
+        logging.debug(repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (solutions[0]['X'].name, 'qIsFamiliar')
+
+
+
 
 if __name__ == "__main__":
 
