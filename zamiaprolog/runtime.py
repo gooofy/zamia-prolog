@@ -352,6 +352,12 @@ class PrologRuntime(object):
             for i in range(len(src.args)):
                 if not self._unify(src.args[i], srcEnv, dest.args[i], dde, location):
                     return False
+
+            # always unify implicit overlay variable:
+
+            if ASSERT_OVERLAY_VAR_NAME in srcEnv:
+                dde[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
+
             destEnv.update(dde)
             return True
 
