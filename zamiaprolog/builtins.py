@@ -450,6 +450,24 @@ def builtin_dict_get(g, rt):
 
 ASSERT_OVERLAY_VAR_NAME = '__OVERLAYZ__'
 
+def do_assertz(env, name, clause, res={}):
+
+    ov = res.get(ASSERT_OVERLAY_VAR_NAME)
+    if ov is None:
+        ov = env.get(ASSERT_OVERLAY_VAR_NAME)
+
+    if ov is None:
+        res[ASSERT_OVERLAY_VAR_NAME] = {name: [clause]}
+    else:
+        d2 = deepcopy(ov)
+        if name in d2:
+            d2[name].append(clause)
+        else:
+            d2[name] = [clause]
+        res[ASSERT_OVERLAY_VAR_NAME] = d2
+
+    return res
+
 def builtin_assertz(g, rt):
 
     """ assertz (+P) """
@@ -464,21 +482,14 @@ def builtin_assertz(g, rt):
 
     arg_p     = rt.prolog_eval (args[0], g.env, g.location)
 
+    # if not arg_p:
+    #     import pdb; pdb.set_trace()
+    
     clause = Clause (head=arg_p, location=g.location)
 
     name = arg_p.name
 
-    if not ASSERT_OVERLAY_VAR_NAME in g.env:
-        g.env[ASSERT_OVERLAY_VAR_NAME] = {name: [clause]}
-    else:
-        d2 = deepcopy(g.env[ASSERT_OVERLAY_VAR_NAME])
-        if name in d2:
-            d2[name].append(clause)
-        else:
-            d2[name] = [clause]
-        g.env[ASSERT_OVERLAY_VAR_NAME] = d2
-
-    return True
+    return [do_assertz(g.env, name, clause)]
 
 #
 # functions
