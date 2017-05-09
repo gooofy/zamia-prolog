@@ -411,7 +411,7 @@ class PrologRuntime(object):
         for k in sorted(env):
             logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(env[k]), 80)))
 
-    def _finish_goal (self, g, succeed):
+    def _finish_goal (self, g, succeed, queue, solutions):
 
         while True:
 
@@ -421,14 +421,14 @@ class PrologRuntime(object):
                 self._trace ('SUCCESS ', g)
 
                 if g.parent == None :                   # Our original goal?
-                    self.solutions.append(g.env)        # Record solution
+                    solutions.append(g.env)        # Record solution
 
                 else: 
                     parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
                     self._unify (g.head, g.env,
                                  parent.terms[parent.inx], parent.env, g.location)
                     parent.inx = parent.inx+1           # advance to next goal in body
-                    self.queue.insert(0, parent)        # let it wait its turn
+                    queue.insert(0, parent)             # let it wait its turn
 
                 break
 
@@ -442,26 +442,8 @@ class PrologRuntime(object):
                     parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
                     self._unify (g.head, g.env,
                                  parent.terms[parent.inx], parent.env, g.location)
-                    g = parent
+                    g       = parent
                     succeed = False
-
-        # succ = not succeed if g.negate else succeed
-
-        # if succ:
-        #     self._trace ('SUCCESS ', g)
-
-        #     if g.parent == None :                   # Our original goal?
-        #         self.solutions.append(g.env)        # Record solution
-
-        #     else: 
-        #         parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
-        #         self._unify (g.head, g.env,
-        #                      parent.terms[parent.inx], parent.env)
-        #         parent.inx = parent.inx+1           # advance to next goal in body
-        #         self.queue.insert(0, parent)        # let it wait its turn
-
-        # else:
-        #     self._trace ('FAIL ', g)
 
     def search (self, clause, env={}):
 
@@ -476,16 +458,16 @@ class PrologRuntime(object):
         else:
             raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
 
-        self.queue     = [ PrologGoal (clause.head, terms, env=env, location=clause.location) ]
-        self.solutions = []
+        queue     = [ PrologGoal (clause.head, terms, env=env, location=clause.location) ]
+        solutions = []
 
-        while self.queue :
-            g = self.queue.pop()                         # Next goal to consider
+        while queue :
+            g = queue.pop()                         # Next goal to consider
 
             self._trace ('CONSIDER', g)
 
             if g.inx >= len(g.terms) :              # Is this one finished?
-                self._finish_goal (g, True)
+                self._finish_goal (g, True, queue, solutions)
                 continue
 
             # No. more to do with this goal.
@@ -502,17 +484,17 @@ class PrologRuntime(object):
                         g.env[pred.args[0].name] = ans  # Set variable
 
                     elif ques != ans :                  # Mismatch, fail
-                        self._finish_goal (g, False)
+                        self._finish_goal (g, False, queue, solutions)
                         continue                
 
-                elif name == 'cut' : self.queue = [] # Zap the competition
+                elif name == 'cut' : queue = [] # Zap the competition
                 elif name == 'fail':            # Dont succeed
-                    self._finish_goal (g, False)
+                    self._finish_goal (g, False, queue, solutions)
                     continue
 
                 elif name == 'not':
                     # insert negated sub-guoal
-                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, negate=True, location=g.location))
+                    queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, negate=True, location=g.location))
                     continue
 
                 elif name == 'or':
@@ -521,16 +503,16 @@ class PrologRuntime(object):
 
                     for subgoal in pred.args:
                         # logging.debug ('    subgoal: %s' % subgoal)
-                        self.queue.insert(0, PrologGoal(pred, [subgoal], g, env=g.env, location=g.location))
+                        queue.insert(0, PrologGoal(pred, [subgoal], g, env=g.env, location=g.location))
 
                     continue
 
                 elif name == 'and':
-                    self.queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, location=g.location))
+                    queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, location=g.location))
                     continue
 
                 g.inx = g.inx + 1               # Succeed. resume self.
-                self.queue.insert(0, g)
+                queue.insert(0, g)
                 continue
 
             # builtin predicate ?
@@ -547,13 +529,13 @@ class PrologRuntime(object):
                         for b in bindings:
                             new_env = copy.deepcopy(g.env)
                             new_env.update(b)
-                            self.queue.insert(0, PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx, location=g.location))
+                            queue.insert(0, PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx, location=g.location))
 
                     else:
-                        self.queue.insert (0, g)
+                        queue.insert (0, g)
 
                 else:
-                    self._finish_goal (g, False)
+                    self._finish_goal (g, False, queue, solutions)
 
                 continue
 
@@ -580,10 +562,10 @@ class PrologRuntime(object):
 
                 ans = self._unify (pred, g.env, clause.head, child.env, g.location)
                 if ans:                             # if unifies, queue it up
-                    self.queue.insert(0, child)
+                    queue.insert(0, child)
                     # logging.debug ("Queue %s" % str(child))
 
-        return self.solutions
+        return solutions
 
     def search_predicate(self, name, args, env={}, location=None):
 
