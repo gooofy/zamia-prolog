@@ -249,7 +249,14 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['X'].name, 'qIsFamiliar')
 
 
+    # @unittest.skip("temporarily disabled")
+    def test_gensym(self):
 
+        clause = self.parser.parse_line_clause_body('gensym(foo, I), gensym(foo, J)')
+        solutions = self.rt.search(clause)
+        logging.debug(repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertNotEqual (solutions[0]['I'].name, solutions[0]['J'].name)
 
 if __name__ == "__main__":
 

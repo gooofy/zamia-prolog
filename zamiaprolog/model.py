@@ -48,4 +48,10 @@ class ORMPredicateDoc(Base):
 
     doc               = Column(UnicodeText)
 
+class ORMGensymNum(Base):
+
+    __tablename__ = 'gensym_nums'
+
+    root              = Column(String(255), primary_key=True)
+    current_num       = Column(Integer)
 

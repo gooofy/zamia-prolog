@@ -30,6 +30,8 @@ import pytz # $ pip install pytz
 from tzlocal import get_localzone # $ pip install tzlocal
 from copy    import deepcopy
 
+import model
+
 from logic   import *
 from errors  import *
 
@@ -490,6 +492,42 @@ def builtin_assertz(g, rt):
     name = arg_p.name
 
     return [do_assertz(g.env, name, clause)]
+
+def do_gensym(rt, root):
+
+    orm_gn = rt.db.session.query(model.ORMGensymNum).filter(model.ORMGensymNum.root==root).first()
+
+    if not orm_gn:
+        current_num = 1
+        orm_gn = model.ORMGensymNum(root=root, current_num=1)
+        rt.db.session.add(orm_gn)
+    else:
+        current_num = orm_gn.current_num + 1
+        orm_gn.current_num = current_num
+
+    return root + str(current_num)
+
+def builtin_gensym(g, rt):
+
+    """ gensym (+Root, -Unique) """
+
+    rt._trace ('CALLED BUILTIN gensym', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('gensym: 2 args (+Root, -Unique) expected.', g.location)
+
+    arg_root   = rt.prolog_eval         (args[0], g.env, g.location)
+    arg_unique = rt.prolog_get_variable (args[1], g.env, g.location)
+
+    unique = do_gensym(rt, arg_root.name)
+
+    g.env[arg_unique] = Predicate(unique)
+
+    return True
+
 
 #
 # functions

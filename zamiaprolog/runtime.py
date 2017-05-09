@@ -162,6 +162,7 @@ class PrologRuntime(object):
         # assert, rectract...
 
         self.register_builtin('assertz',         builtin_assertz)        # assertz (+P)
+        self.register_builtin('gensym',          builtin_gensym)         # gensym (+Root, -Unique)
 
 
         #
