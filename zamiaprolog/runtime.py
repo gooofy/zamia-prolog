@@ -585,3 +585,25 @@ class PrologRuntime(object):
 
         return self.solutions
 
+    def search_predicate(self, name, args, env={}, location=None):
+
+        """ convenience function: built Clause/Predicate structure, translate python strings in args
+            into Predicates/Variables by Prolog conventions (lowercase: predicate, uppercase: variable) """
+
+        if not location:
+            location = SourceLocation('<input>', 0, 0)
+
+        mapped_args = []
+        for arg in args:
+            if not isinstance(arg, basestring):
+                mapped_args.append(arg)
+                continue
+            if arg[0].isupper():
+                mapped_args.append(Variable(arg))
+            else:
+                mapped_args.append(Predicate(arg))
+
+        solutions = self.search(Clause(body=Predicate(name, mapped_args), location=location), env=env)
+
+        return solutions
+

@@ -128,15 +128,11 @@ class TestZamiaProlog (unittest.TestCase):
 
         # self.rt.set_trace(True)
 
-        clause = self.parser.parse_line_clause_body('woman(X)')
-        logging.debug('clause: %s' % clause)
-        solutions = self.rt.search(clause)
+        solutions = self.rt.search_predicate('woman', ['X'])
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 3)
 
-        clause = self.parser.parse_line_clause_body('human(X)')
-        logging.debug('clause: %s' % clause)
-        solutions = self.rt.search(clause)
+        solutions = self.rt.search_predicate('human', ['X'])
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 8)
 
