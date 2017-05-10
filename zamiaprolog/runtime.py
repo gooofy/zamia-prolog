@@ -446,7 +446,7 @@ class PrologRuntime(object):
                     g       = parent
                     succeed = False
 
-    def search (self, clause, env={}):
+    def search (self, clause, env={}, err_on_missing=True):
 
         if clause.body is None:
             return [{}]
@@ -475,6 +475,11 @@ class PrologRuntime(object):
             pred = g.terms[g.inx]                   # what we want to solve
 
             name = pred.name
+                
+            # FIXME: debug only
+            # if name == 'ias':
+            #     import pdb; pdb.set_trace()
+
             if name in builtin_specials:
                 if name == 'is' :
 
@@ -544,8 +549,14 @@ class PrologRuntime(object):
 
             clauses = self.db.lookup(pred.name, g.env.get(ASSERT_OVERLAY_VAR_NAME))
 
-            if len(clauses) == 0:
-                raise PrologRuntimeError ('Failed to find predicate "%s" !' % pred.name)
+            if len(clauses) == 0: 
+                if err_on_missing:
+                    raise PrologRuntimeError ('Failed to find predicate "%s" !' % pred.name)
+                else:
+                    # simply fail
+                    self._finish_goal (g, False, queue, solutions)
+                    continue
+
 
             for clause in clauses:
 
@@ -568,7 +579,7 @@ class PrologRuntime(object):
 
         return solutions
 
-    def search_predicate(self, name, args, env={}, location=None):
+    def search_predicate(self, name, args, env={}, location=None, err_on_missing=True):
 
         """ convenience function: built Clause/Predicate structure, translate python strings in args
             into Predicates/Variables by Prolog conventions (lowercase: predicate, uppercase: variable) """
@@ -586,7 +597,7 @@ class PrologRuntime(object):
             else:
                 mapped_args.append(Predicate(arg))
 
-        solutions = self.search(Clause(body=Predicate(name, mapped_args), location=location), env=env)
+        solutions = self.search(Clause(body=Predicate(name, mapped_args), location=location), env=env, err_on_missing=err_on_missing)
 
         return solutions
 

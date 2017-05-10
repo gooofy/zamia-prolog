@@ -109,6 +109,14 @@ class LogicDB(object):
 
         return res
 
+    def store_overlayZ(self, module, overlayZ, commit=True):
+
+        for name in overlayZ:
+            for clause in overlayZ[name]:
+                self.store(module, clause)
+
+        if commit:
+            self.commit()
 
 # class LogicMemDB(object):
 # 

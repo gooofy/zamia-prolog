@@ -491,7 +491,7 @@ def builtin_assertz(g, rt):
 
     name = arg_p.name
 
-    return [do_assertz(g.env, name, clause)]
+    return [do_assertz(g.env, name, clause, res={})]
 
 def do_gensym(rt, root):
 
