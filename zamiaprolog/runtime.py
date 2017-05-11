@@ -375,14 +375,14 @@ class PrologRuntime(object):
         res = u'!' if goal.negate else u''
 
         if goal.head:
-            res += limit_str(unicode(goal.head), 40)
+            res += limit_str(unicode(goal.head), 60)
         else:
             res += u'TOP'
         res += ' '
 
         for i, t in enumerate(goal.terms):
             if i == goal.inx:
-                 res += u" -> " + limit_str(unicode(t), 40)
+                 res += u" -> " + limit_str(unicode(t), 60)
 
         res += ' [' + unicode(goal.location) + ']'
 
@@ -392,7 +392,15 @@ class PrologRuntime(object):
         logging.info(u"%s %s: %s" % (indent, label, res))
      
         for k in sorted(goal.env):
-            logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(goal.env[k]), 80)))
+            if k != ASSERT_OVERLAY_VAR_NAME:
+                logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(goal.env[k]), 100)))
+
+        if ASSERT_OVERLAY_VAR_NAME in goal.env:
+            for k in sorted(goal.env[ASSERT_OVERLAY_VAR_NAME]):
+                for clause in goal.env[ASSERT_OVERLAY_VAR_NAME][k]:
+                    logging.info(u"%s   [O] %s" % (indent, limit_str(unicode(clause), 100)))
+
+
             
         # import pdb; pdb.set_trace()
 
