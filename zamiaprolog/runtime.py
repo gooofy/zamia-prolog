@@ -559,7 +559,7 @@ class PrologRuntime(object):
 
             if len(clauses) == 0: 
                 if err_on_missing:
-                    raise PrologRuntimeError ('Failed to find predicate "%s" !' % pred.name)
+                    raise PrologRuntimeError ('Failed to find predicate "%s" !' % pred.name, g.location)
                 else:
                     # simply fail
                     self._finish_goal (g, False, queue, solutions)

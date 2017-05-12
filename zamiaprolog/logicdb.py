@@ -28,7 +28,6 @@ from copy           import deepcopy, copy
 from sqlalchemy     import create_engine
 from sqlalchemy.orm import sessionmaker
 
-
 import model
 
 from logic  import *
