@@ -589,7 +589,7 @@ class PrologRuntime(object):
 
     def search_predicate(self, name, args, env={}, location=None, err_on_missing=True):
 
-        """ convenience function: built Clause/Predicate structure, translate python strings in args
+        """ convenience function: build Clause/Predicate structure, translate python strings in args
             into Predicates/Variables by Prolog conventions (lowercase: predicate, uppercase: variable) """
 
         if not location:
