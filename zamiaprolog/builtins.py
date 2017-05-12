@@ -493,6 +493,26 @@ def builtin_assertz(g, rt):
 
     return [do_assertz(g.env, name, clause, res={})]
 
+def do_assertz_predicate(env, name, args, res={}, location=None):
+
+    """ convenience function: build Clause/Predicate structure, translate python string into Predicates/Variables by
+        Prolog conventions (lowercase: predicate, uppercase: variable) """
+
+    if not location:
+        location = SourceLocation('<input>', 0, 0)
+
+    mapped_args = []
+    for arg in args:
+        if not isinstance(arg, basestring):
+            mapped_args.append(arg)
+            continue
+        if arg[0].isupper():
+            mapped_args.append(Variable(arg))
+        else:
+            mapped_args.append(Predicate(arg))
+
+    return do_assertz (env, name, Clause(head=Predicate(name, mapped_args), location=location), res=res)
+
 def do_gensym(rt, root):
 
     orm_gn = rt.db.session.query(model.ORMGensymNum).filter(model.ORMGensymNum.root==root).first()
