@@ -307,8 +307,23 @@ class PrologRuntime(object):
 
         if not isinstance(t, Predicate):
             raise PrologRuntimeError('Constant expected, %s found instead.' % term.__class__, location)
+        if len(t.args) >0:
+            raise PrologRuntimeError('Constant expected, %s found instead.' % unicode(t), location)
         return t.name
 
+    def prolog_get_predicate(self, term, env, location):
+
+        t = self.prolog_eval (term, env, location)
+
+        if t:
+            if not isinstance(t, Predicate):
+                raise PrologRuntimeError(u'Predicate expected, %s (%s) found instead.' % (unicode(t), t.__class__), location)
+            return t
+
+        if not isinstance(term, Predicate):
+            raise PrologRuntimeError(u'Predicate expected, %s (%s) found instead.' % (unicode(term), term.__class__), location)
+
+        return term
 
     # A Goal is a rule in at a certain point in its computation. 
     # env contains definitions (so far), inx indexes the current term
@@ -487,6 +502,7 @@ class PrologRuntime(object):
             # FIXME: debug only
             # if name == 'ias':
             #     import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
 
             if name in builtin_specials:
                 if name == 'is' :
@@ -566,6 +582,8 @@ class PrologRuntime(object):
                     continue
 
 
+            success = False
+
             for clause in clauses:
 
                 if len(clause.head.args) != len(pred.args): 
@@ -583,7 +601,13 @@ class PrologRuntime(object):
                 ans = self._unify (pred, g.env, clause.head, child.env, g.location)
                 if ans:                             # if unifies, queue it up
                     queue.insert(0, child)
+                    success = True
                     # logging.debug ("Queue %s" % str(child))
+
+            if not success:
+                # make sure we explicitly fail for proper negation support
+                self._finish_goal (g, False, queue, solutions)
+
 
         return solutions
 

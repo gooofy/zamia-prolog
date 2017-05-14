@@ -482,7 +482,7 @@ def builtin_assertz(g, rt):
     if len(args) != 1:
         raise PrologRuntimeError('assertz: 1 arg (+P) expected.', g.location)
 
-    arg_p     = rt.prolog_eval (args[0], g.env, g.location)
+    arg_p  = rt.prolog_get_predicate (args[0], g.env, g.location)
 
     # if not arg_p:
     #     import pdb; pdb.set_trace()

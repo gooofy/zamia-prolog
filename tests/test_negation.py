@@ -104,6 +104,14 @@ class TestNegation (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 2)
 
+    # @unittest.skip("temporarily disabled")
+    def test_assertz_negation(self):
+
+        clause = self.parser.parse_line_clause_body('assertz(foobar(a)), foobar(a), (not(foobar(b))).')
+        logging.debug('clause: %s' % clause)
+        solutions = self.rt.search(clause, {})
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
 
 if __name__ == "__main__":
 
