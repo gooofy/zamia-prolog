@@ -22,6 +22,11 @@
 #
 # based on http://openbookproject.net/py4fun/prolog/prolog3.html by Chris Meyers
 #
+# A Goal is a rule in at a certain point in its computation. 
+# env contains binding, inx indexes the current term
+# being satisfied, parent is another Goal which spawned this one
+# and which we will unify back to when this Goal is complete.
+
 
 import os
 import sys
@@ -326,11 +331,6 @@ class PrologRuntime(object):
 
         return term
 
-    # A Goal is a rule in at a certain point in its computation. 
-    # env contains definitions (so far), inx indexes the current term
-    # being satisfied, parent is another Goal which spawned this one
-    # and which we will unify back to when this Goal is complete.
-
     def _unify (self, src, srcEnv, dest, destEnv, location) :
         "update dest env from src. return true if unification succeeds"
         # logging.debug("Unify %s %s to %s %s" % (src, srcEnv, dest, destEnv))
@@ -365,17 +365,26 @@ class PrologRuntime(object):
         elif len(src.args) != len(dest.args): 
             return False
         else:
-            dde = copy.deepcopy(destEnv)
             for i in range(len(src.args)):
-                if not self._unify(src.args[i], srcEnv, dest.args[i], dde, location):
+                if not self._unify(src.args[i], srcEnv, dest.args[i], destEnv, location):
                     return False
 
             # always unify implicit overlay variable:
 
             if ASSERT_OVERLAY_VAR_NAME in srcEnv:
-                dde[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
+                destEnv[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
 
-            destEnv.update(dde)
+            # dde = copy.deepcopy(destEnv)
+            # for i in range(len(src.args)):
+            #     if not self._unify(src.args[i], srcEnv, dest.args[i], dde, location):
+            #         return False
+
+            # # always unify implicit overlay variable:
+
+            # if ASSERT_OVERLAY_VAR_NAME in srcEnv:
+            #     dde[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
+
+            # destEnv.update(dde)
             return True
 
     def _trace (self, label, goal):
@@ -446,7 +455,7 @@ class PrologRuntime(object):
                 self._trace ('SUCCESS ', g)
 
                 if g.parent == None :                   # Our original goal?
-                    solutions.append(g.env)        # Record solution
+                    solutions.append(g.env)             # Record solution
 
                 else: 
                     parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
