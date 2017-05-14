@@ -144,7 +144,8 @@ class PrologRuntime(object):
         # I/O
 
         self.register_builtin('write',           builtin_write)          # write (+Term)
-        self.register_builtin('nl',              builtin_nl)
+        self.register_builtin('nl',              builtin_nl)             # nl
+        self.register_builtin('log',             builtin_log)            # log (+Level, +Term)
 
         # lists
 

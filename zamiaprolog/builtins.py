@@ -286,6 +286,36 @@ def builtin_nl(g, rt):
 
     return True
 
+def builtin_log(g, rt):
+
+    """ log (+Level, +Term) """
+
+    rt._trace ('CALLED BUILTIN log', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('log: 2 args (+Level, +Term) expected.', g.location)
+
+    l = rt.prolog_get_constant(args[0], g.env, g.location)
+    t = rt.prolog_eval        (args[1], g.env, g.location)
+
+    if isinstance (t, StringLiteral):
+        s = t.s
+    else:
+        s = unicode(t)
+        
+    if l == u'debug':
+        logging.debug(s)
+    elif l == u'info':
+        logging.info(s)
+    elif l == u'error':
+        logging.error(s)
+    else:
+        raise PrologRuntimeError('log: unknown level %s, one of (debug, info, error) expected.' % l, g.location)
+
+    return True
+ 
 def builtin_list_contains(g, rt):
 
     rt._trace ('CALLED BUILTIN list_contains', g)
