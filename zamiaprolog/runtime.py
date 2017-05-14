@@ -143,14 +143,14 @@ class PrologRuntime(object):
 
         # I/O
 
-        self.register_builtin('write',           builtin_write)
+        self.register_builtin('write',           builtin_write)          # write (+Term)
         self.register_builtin('nl',              builtin_nl)
 
         # lists
 
         self.register_builtin('list_contains',   builtin_list_contains)
         self.register_builtin('list_nth',        builtin_list_nth)
-        self.register_builtin('list_slice',      builtin_list_slice)     # list_slice (-Idx1, -Idx2, -List, +Slice) 
+        self.register_builtin('list_slice',      builtin_list_slice)     # list_slice (+Idx1, +Idx2, +List, -Slice) 
         self.register_builtin('list_append',     builtin_list_append)    # list_append (?List, +Element)
         self.register_builtin('list_str_join',   builtin_list_str_join)  # list_str_join (+Glue, +List, -Str)
 

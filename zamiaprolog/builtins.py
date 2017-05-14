@@ -255,11 +255,16 @@ def builtin_atom_chars(g, rt):
 
 def builtin_write(g, rt):
 
+    """ write (+Term) """
+
     rt._trace ('CALLED BUILTIN write', g)
 
-    term = g.terms[g.inx].args[0]
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('write: 1 arg (+Term) expected.', g.location)
 
-    t = rt.prolog_eval(term, g.env, g.location)
+    t = rt.prolog_eval(args[0], g.env, g.location)
 
     if isinstance (t, StringLiteral):
         sys.stdout.write(t.s)
@@ -271,6 +276,11 @@ def builtin_write(g, rt):
 def builtin_nl(g, rt):
 
     rt._trace ('CALLED BUILTIN nl', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 0:
+        raise PrologRuntimeError('nl: no args expected.', g.location)
 
     sys.stdout.write('\n')
 
@@ -320,7 +330,7 @@ def builtin_list_nth(g, rt):
 
 def builtin_list_slice(g, rt):
 
-    """ list_slice (-Idx1, -Idx2, -List, +Slice) """
+    """ list_slice (+Idx1, +Idx2, +List, -Slice) """
 
     rt._trace ('CALLED BUILTIN list_slice', g)
 
@@ -328,7 +338,7 @@ def builtin_list_slice(g, rt):
 
     args = pred.args
     if len(args) != 4:
-        raise PrologRuntimeError('list_slice: 4 args (-Idx1, -Idx2, -List, +Slice) expected.', g.location)
+        raise PrologRuntimeError('list_slice: 4 args (+Idx1, +Idx2, +List, -Slice) expected.', g.location)
 
     arg_idx1  = rt.prolog_get_int  (args[0], g.env, g.location)
     arg_idx2  = rt.prolog_get_int  (args[1], g.env, g.location)
