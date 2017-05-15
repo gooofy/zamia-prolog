@@ -71,7 +71,7 @@ class PrologGoal:
         self.head     = head
         self.terms    = terms
         self.parent   = parent
-        self.env      = copy.deepcopy(env)
+        self.env      = env
         self.negate   = negate
         self.inx      = inx
         self.location = location
@@ -374,17 +374,6 @@ class PrologRuntime(object):
             if ASSERT_OVERLAY_VAR_NAME in srcEnv:
                 destEnv[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
 
-            # dde = copy.deepcopy(destEnv)
-            # for i in range(len(src.args)):
-            #     if not self._unify(src.args[i], srcEnv, dest.args[i], dde, location):
-            #         return False
-
-            # # always unify implicit overlay variable:
-
-            # if ASSERT_OVERLAY_VAR_NAME in srcEnv:
-            #     dde[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
-
-            # destEnv.update(dde)
             return True
 
     def _trace (self, label, goal):
@@ -458,7 +447,14 @@ class PrologRuntime(object):
                     solutions.append(g.env)             # Record solution
 
                 else: 
-                    parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
+                    # queue up shallow copy of parent goal to resume
+                    parent = PrologGoal (head     = g.parent.head, 
+                                         terms    = g.parent.terms, 
+                                         parent   = g.parent.parent, 
+                                         env      = copy.copy(g.parent.env),
+                                         negate   = g.parent.negate,
+                                         inx      = g.parent.inx,
+                                         location = g.parent.location)
                     self._unify (g.head, g.env,
                                  parent.terms[parent.inx], parent.env, g.location)
                     parent.inx = parent.inx+1           # advance to next goal in body
@@ -473,7 +469,14 @@ class PrologRuntime(object):
                     break
 
                 else: 
-                    parent = copy.deepcopy(g.parent)    # Otherwise resume parent goal
+                    # queue up shallow copy of parent goal to resume
+                    parent = PrologGoal (head     = g.parent.head, 
+                                         terms    = g.parent.terms, 
+                                         parent   = g.parent.parent, 
+                                         env      = copy.copy(g.parent.env),
+                                         negate   = g.parent.negate,
+                                         inx      = g.parent.inx,
+                                         location = g.parent.location)
                     self._unify (g.head, g.env,
                                  parent.terms[parent.inx], parent.env, g.location)
                     g       = parent
@@ -492,7 +495,7 @@ class PrologRuntime(object):
         else:
             raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
 
-        queue     = [ PrologGoal (clause.head, terms, env=env, location=clause.location) ]
+        queue     = [ PrologGoal (clause.head, terms, env=deepcopy(env), location=clause.location) ]
         solutions = []
 
         while queue :
@@ -534,7 +537,7 @@ class PrologRuntime(object):
 
                 elif name == 'not':
                     # insert negated sub-guoal
-                    queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, negate=True, location=g.location))
+                    queue.insert(0, PrologGoal(pred, pred.args, g, env=deepcopy(g.env), negate=True, location=g.location))
                     continue
 
                 elif name == 'or':
@@ -543,12 +546,12 @@ class PrologRuntime(object):
 
                     for subgoal in pred.args:
                         # logging.debug ('    subgoal: %s' % subgoal)
-                        queue.insert(0, PrologGoal(pred, [subgoal], g, env=g.env, location=g.location))
+                        queue.insert(0, PrologGoal(pred, [subgoal], g, env=deepcopy(g.env), location=g.location))
 
                     continue
 
                 elif name == 'and':
-                    queue.insert(0, PrologGoal(pred, pred.args, g, env=g.env, location=g.location))
+                    queue.insert(0, PrologGoal(pred, pred.args, g, env=deepcopy(g.env), location=g.location))
                     continue
 
                 g.inx = g.inx + 1               # Succeed. resume self.
@@ -604,9 +607,9 @@ class PrologRuntime(object):
                 # queue up child subgoal
 
                 if clause.body:
-                    child = PrologGoal(clause.head, [clause.body], g, location=clause.location)
+                    child = PrologGoal(clause.head, [clause.body], g, env={}, location=clause.location)
                 else:
-                    child = PrologGoal(clause.head, [], g, location=clause.location)
+                    child = PrologGoal(clause.head, [], g, env={}, location=clause.location)
 
                 ans = self._unify (pred, g.env, clause.head, child.env, g.location)
                 if ans:                             # if unifies, queue it up
