@@ -495,7 +495,7 @@ class PrologRuntime(object):
         else:
             raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
 
-        queue     = [ PrologGoal (clause.head, terms, env=deepcopy(env), location=clause.location) ]
+        queue     = [ PrologGoal (clause.head, terms, env=copy.copy(env), location=clause.location) ]
         solutions = []
 
         while queue :
@@ -537,7 +537,7 @@ class PrologRuntime(object):
 
                 elif name == 'not':
                     # insert negated sub-guoal
-                    queue.insert(0, PrologGoal(pred, pred.args, g, env=deepcopy(g.env), negate=True, location=g.location))
+                    queue.insert(0, PrologGoal(pred, pred.args, g, env=copy.copy(g.env), negate=True, location=g.location))
                     continue
 
                 elif name == 'or':
@@ -546,12 +546,12 @@ class PrologRuntime(object):
 
                     for subgoal in pred.args:
                         # logging.debug ('    subgoal: %s' % subgoal)
-                        queue.insert(0, PrologGoal(pred, [subgoal], g, env=deepcopy(g.env), location=g.location))
+                        queue.insert(0, PrologGoal(pred, [subgoal], g, env=copy.copy(g.env), location=g.location))
 
                     continue
 
                 elif name == 'and':
-                    queue.insert(0, PrologGoal(pred, pred.args, g, env=deepcopy(g.env), location=g.location))
+                    queue.insert(0, PrologGoal(pred, pred.args, g, env=copy.copy(g.env), location=g.location))
                     continue
 
                 g.inx = g.inx + 1               # Succeed. resume self.
@@ -570,7 +570,7 @@ class PrologRuntime(object):
                     if type(bindings) is list:
 
                         for b in bindings:
-                            new_env = copy.deepcopy(g.env)
+                            new_env = copy.copy(g.env)
                             new_env.update(b)
                             queue.insert(0, PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx, location=g.location))
 
