@@ -316,6 +316,28 @@ def builtin_log(g, rt):
 
     return True
  
+def builtin_trace(g, rt):
+
+    """ trace (+OnOff) """
+
+    rt._trace ('CALLED BUILTIN trace', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('trace: 1 arg (+OnOff) expected.', g.location)
+
+    onoff = rt.prolog_get_constant(args[0], g.env, g.location)
+
+    if onoff == u'on':
+        rt.set_trace(True)
+    elif onoff == u'off':
+        rt.set_trace(False)
+    else:
+        raise PrologRuntimeError('trace: unknown onoff value %s, one of (on, off) expected.' % onoff, g.location)
+
+    return True
+ 
 def builtin_list_contains(g, rt):
 
     rt._trace ('CALLED BUILTIN list_contains', g)
