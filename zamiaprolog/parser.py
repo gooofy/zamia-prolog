@@ -381,6 +381,8 @@ class PrologParser(object):
 
     def macro_call(self):
 
+        loc = self.get_location()
+
         mc = self.cur_str
         self.next_sym()
         
@@ -388,7 +390,7 @@ class PrologParser(object):
         if len(parts) != 2:
             self.report_error ("macro:var expected.")
 
-        return MacroCall(parts[0], parts[1])
+        return MacroCall(parts[0], parts[1], location=loc)
 
     def unary_term(self):
 
