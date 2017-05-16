@@ -338,11 +338,17 @@ class Clause(JSONLogic):
                 'location': self.location.to_dict(),
                }
 
-class MacroCall:
+class MacroCall(JSONLogic):
 
-    def __init__(self, name, pred):
-        self.name = name
-        self.pred = pred
+    def __init__(self, name=None, pred=None, location=None, json_dict=None):
+        if json_dict:
+            self.name     = json_dict['name'] 
+            self.pred     = json_dict['pred']
+            self.location = json_dict['location']
+        else:
+            self.name     = name
+            self.pred     = pred
+            self.location = location
 
     def __str__(self):
         return unicode(self).encode('utf8')
@@ -353,6 +359,12 @@ class MacroCall:
     def __repr__(self):
         return 'MacroCall(%s, %s)' % (self.name, self.pred)
 
+    def to_dict(self):
+        return {'pt'      : 'MacroCall', 
+                'name'    : self.name,
+                'pred'    : self.pred,
+                'location': self.location.to_dict(),
+               }
 #
 # JSON interface
 #
@@ -399,6 +411,8 @@ def _prolog_from_json(o):
         return Variable (json_dict=o)
     if o['pt'] == 'SourceLocation':
         return SourceLocation (json_dict=o)
+    if o['pt'] == 'MacroCall':
+        return MacroCall (json_dict=o)
 
     raise PrologError('cannot convert from json: %s .' % repr(o))
 
