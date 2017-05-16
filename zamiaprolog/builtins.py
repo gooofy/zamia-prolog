@@ -40,7 +40,7 @@ def builtin_cmp_op(g, op, rt):
     pred = g.terms[g.inx]
     args = pred.args
     if len(args) != 2:
-        raise PrologRuntimeError('cmp_op: 2 args expected.')
+        raise PrologRuntimeError('cmp_op: 2 args expected.', g.location)
 
     a = rt.prolog_get_literal(args[0], g.env, g.location)
     b = rt.prolog_get_literal(args[1], g.env, g.location)
@@ -65,7 +65,7 @@ def builtin_arith_imp(g, op, rt):
     pred = g.terms[g.inx]
     args = pred.args
     if len(args) != 2:
-        raise PrologRuntimeError('arith_op: 2 args expected.')
+        raise PrologRuntimeError('arith_op: 2 args expected.', g.location)
 
     a = rt.prolog_get_variable (args[0], g.env, g.location)
     b = rt.prolog_get_float    (args[1], g.env, g.location)
@@ -92,10 +92,10 @@ def builtin_date_time_stamp(g, rt):
     pred = g.terms[g.inx]
     args = pred.args
     if len(args) != 2:
-        raise PrologRuntimeError('date_time_stamp: 2 args expected.')
+        raise PrologRuntimeError('date_time_stamp: 2 args expected.', g.location)
 
     if not isinstance(args[0], Predicate) or not args[0].name == 'date' or len(args[0].args) != 7:
-        raise PrologRuntimeError('date_time_stamp: arg0: date structure expected.')
+        raise PrologRuntimeError('date_time_stamp: arg0: date structure expected.', g.location)
 
     arg_Y   = rt.prolog_get_int(args[0].args[0], g.env, g.location)
     arg_M   = rt.prolog_get_int(args[0].args[1], g.env, g.location)
@@ -111,11 +111,11 @@ def builtin_date_time_stamp(g, rt):
     tz = get_localzone() if arg_TZ == 'local' else pytz.timezone(arg_TZ)
 
     if not isinstance(args[1], Variable):
-        raise PrologRuntimeError('date_time_stamp: arg1: variable expected.')
+        raise PrologRuntimeError('date_time_stamp: arg1: variable expected.', g.location)
 
     v = g.env.get(args[1].name)
     if v:
-        raise PrologRuntimeError('date_time_stamp: arg1: variable already bound.')
+        raise PrologRuntimeError('date_time_stamp: arg1: variable already bound.', g.location)
     
     dt = datetime.datetime(arg_Y, arg_M, arg_D, arg_H, arg_Mn, arg_S, tzinfo=tz)
     g.env[args[1].name] = StringLiteral(dt.isoformat())
@@ -129,7 +129,7 @@ def builtin_get_time(g, rt):
     pred = g.terms[g.inx]
     args = pred.args
     if len(args) != 1:
-        raise PrologRuntimeError('get_time: 1 arg expected.')
+        raise PrologRuntimeError('get_time: 1 arg expected.', g.location)
 
     arg_T   = rt.prolog_get_variable(args[0], g.env, g.location)
 
@@ -146,10 +146,10 @@ def builtin_stamp_date_time(g, rt):
 
     args = pred.args
     if len(args) != 2:
-        raise PrologRuntimeError('stamp_date_time: 2 args expected.')
+        raise PrologRuntimeError('stamp_date_time: 2 args expected.', g.location)
 
     if not isinstance(args[1], Predicate) or not args[1].name == 'date' or len(args[1].args) != 7:
-        raise PrologRuntimeError('stamp_date_time: arg1: date structure expected.')
+        raise PrologRuntimeError('stamp_date_time: arg1: date structure expected.', g.location)
 
     try:
         arg_Y   = rt.prolog_get_variable(args[1].args[0], g.env, g.location)
@@ -186,7 +186,7 @@ def builtin_sub_string(g, rt):
     pred = g.terms[g.inx]
     args = pred.args
     if len(args) != 5:
-        raise PrologRuntimeError('sub_string: 5 args expected.')
+        raise PrologRuntimeError('sub_string: 5 args expected.', g.location)
 
     arg_String    = rt.prolog_get_string(args[0], g.env, g.location)
     arg_Before    = rt.prolog_eval(args[1], g.env, g.location)
@@ -197,17 +197,17 @@ def builtin_sub_string(g, rt):
     # FIXME: implement other variants
     if arg_Before:
         if not isinstance (arg_Before, NumberLiteral):
-            raise PrologRuntimeError('sub_string: arg_Before: Number expected, %s found instead.' % arg_Before.__class__)
+            raise PrologRuntimeError('sub_string: arg_Before: Number expected, %s found instead.' % arg_Before.__class__, g.location)
         before = int(arg_Before.f)
         
         if arg_Length:
 
             if not isinstance (arg_Length, NumberLiteral):
-                raise PrologRuntimeError('sub_string: arg_Length: Number expected, %s found instead.' % arg_Length.__class__)
+                raise PrologRuntimeError('sub_string: arg_Length: Number expected, %s found instead.' % arg_Length.__class__, g.location)
             length = int(arg_Length.f)
 
             if arg_After:
-                raise PrologRuntimeError('sub_string: FIXME: arg_After required to be a variable for now.')
+                raise PrologRuntimeError('sub_string: FIXME: arg_After required to be a variable for now.', g.location)
             else:
 
                 var_After = rt.prolog_get_variable(args[3], g.env, g.location)
@@ -215,7 +215,7 @@ def builtin_sub_string(g, rt):
                     g.env[var_After] = NumberLiteral(len(arg_String) - before - length)
 
                 if arg_SubString:
-                    raise PrologRuntimeError('sub_string: FIXME: arg_SubString required to be a variable for now.')
+                    raise PrologRuntimeError('sub_string: FIXME: arg_SubString required to be a variable for now.', g.location)
                 else:
                     var_SubString = rt.prolog_get_variable(args[4], g.env, g.location)
 
@@ -223,9 +223,9 @@ def builtin_sub_string(g, rt):
                         g.env[var_SubString] = StringLiteral(arg_String[before:before + length])
 
         else:
-            raise PrologRuntimeError('sub_string: FIXME: arg_Length required to be a literal for now.')
+            raise PrologRuntimeError('sub_string: FIXME: arg_Length required to be a literal for now.', g.location)
     else:
-        raise PrologRuntimeError('sub_string: FIXME: arg_Before required to be a literal for now.')
+        raise PrologRuntimeError('sub_string: FIXME: arg_Before required to be a literal for now.', g.location)
         
     return True
 
@@ -236,15 +236,15 @@ def builtin_atom_chars(g, rt):
     pred = g.terms[g.inx]
     args = pred.args
     if len(args) != 2:
-        raise PrologRuntimeError('atom_chars: 2 args expected.')
+        raise PrologRuntimeError('atom_chars: 2 args expected.', g.location)
 
     arg_atom   = rt.prolog_eval(args[0], g.env, g.location)
     arg_str    = rt.prolog_eval(args[1], g.env, g.location)
 
     if not arg_atom and not arg_str:
-        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.')
+        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.', g.location)
     if arg_atom and arg_str:
-        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.')
+        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.', g.location)
 
     if arg_atom:
         g.env[args[1].name] = StringLiteral(unicode(arg_atom))
@@ -346,7 +346,7 @@ def builtin_list_contains(g, rt):
 
     args = pred.args
     if len(args) != 2:
-        raise PrologRuntimeError('list_contains: 2 args expected.')
+        raise PrologRuntimeError('list_contains: 2 args expected.', g.location)
 
     arg_list   = rt.prolog_get_list (args[0], g.env, g.location)
     arg_needle = rt.prolog_eval(args[1], g.env, g.location)
@@ -365,7 +365,7 @@ def builtin_list_nth(g, rt):
 
     args = pred.args
     if len(args) != 3:
-        raise PrologRuntimeError('list_nth: 3 args (index, list, elem) expected.')
+        raise PrologRuntimeError('list_nth: 3 args (index, list, elem) expected.', g.location)
 
     arg_idx  = rt.prolog_get_int  (args[0], g.env, g.location)
     arg_list = rt.prolog_get_list (args[1], g.env, g.location)
@@ -374,7 +374,7 @@ def builtin_list_nth(g, rt):
         arg_elem = args[2]
 
     if not isinstance(arg_elem, Variable):
-        raise PrologRuntimeError('list_nth: 3rd arg has to be an unbound variable for now, %s found instead.' % repr(arg_elem))
+        raise PrologRuntimeError('list_nth: 3rd arg has to be an unbound variable for now, %s found instead.' % repr(arg_elem), g.location)
 
     g.env[arg_elem.name] = arg_list.l[arg_idx]
 
