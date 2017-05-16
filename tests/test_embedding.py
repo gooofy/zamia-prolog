@@ -130,7 +130,7 @@ class TestEmbeddings (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 4)
 
-    def _custom_directive(self, module_name, clause, user_data):
+    def _custom_directive(self, db, module_name, clause, user_data):
         # logging.debug('custom_directive has been run')
         self.assertEqual (len(clause.head.args), 3)
         self.assertEqual (unicode(clause.head.args[0]), u'abc')

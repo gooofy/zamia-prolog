@@ -549,7 +549,7 @@ class PrologParser(object):
 
         return Predicate ('or', res)
 
-    def clause(self):
+    def clause(self, db):
 
         res = []
 
@@ -575,7 +575,7 @@ class PrologParser(object):
 
         if c.head.name in self.directives:
             f, user_data = self.directives[c.head.name]
-            f(self.module_name, c, user_data)
+            f(db, self.module_name, c, user_data)
 
         else:
             res.append(c)
@@ -618,7 +618,7 @@ class PrologParser(object):
     def parse_line_clauses (self, line):
 
         self.start (StringIO(line), '<str>')
-        return self.clause()
+        return self.clause(None)
 
     def register_directive(self, name, f, user_data):
         self.directives[name] = (f, user_data)
@@ -646,7 +646,7 @@ class PrologParser(object):
             self.start(f, filename, module_name=module_name)
 
             while self.cur_sym != SYM_EOF:
-                clauses = self.clause()
+                clauses = self.clause(db)
 
                 for clause in clauses:
                     logging.debug(u"%7d / %7d (%3d%%) > %s" % (self.cur_line, linecnt, self.cur_line * 100 / linecnt, unicode(clause)))
