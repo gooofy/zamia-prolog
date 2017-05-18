@@ -338,6 +338,19 @@ def builtin_trace(g, rt):
 
     return True
  
+def builtin_true(g, rt):
+
+    """ true """
+
+    rt._trace ('CALLED BUILTIN true', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 0:
+        raise PrologRuntimeError('true: no args expected.', g.location)
+
+    return True
+ 
 def builtin_list_contains(g, rt):
 
     rt._trace ('CALLED BUILTIN list_contains', g)
