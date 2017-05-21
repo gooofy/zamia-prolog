@@ -174,6 +174,7 @@ class PrologRuntime(object):
 
         self.register_builtin('set_add',         builtin_set_add)       # set_add (?Set, +Value)
         self.register_builtin('set_get',         builtin_set_get)       # set_get (+Set, -Value)
+        self.register_builtin('set_findall',     builtin_set_findall)   # set_findall (+Template, +Goal, -Set)
 
         # assert, rectract...
 

@@ -344,6 +344,10 @@ class Predicate(JSONLogic):
                 'args': map(lambda a: a.to_dict(), self.args)
                }
 
+    def __hash__(self):
+        # FIXME hash args?
+        return hash(self.name + u'/' + unicode(len(self.args)))
+
 class Clause(JSONLogic):
 
     def __init__(self, head=None, body=None, location=None, json_dict=None):

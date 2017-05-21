@@ -551,7 +551,7 @@ def builtin_set_add(g, rt):
 
 def builtin_set_get(g, rt):
 
-    """ set_get (+Set, ?Key, -Value) """
+    """ set_get (+Set, -Value) """
 
     rt._trace ('CALLED BUILTIN set_get', g)
 
@@ -570,6 +570,35 @@ def builtin_set_get(g, rt):
         res.append({arg_val: v})
 
     return res
+
+def builtin_set_findall(g, rt):
+
+    """ set_findall (+Template, +Goal, -Set) """
+
+    rt._trace ('CALLED BUILTIN set_findall', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 3:
+        raise PrologRuntimeError('set_findall: 3 args (+Template, +Goal, -Set) expected.', g.location)
+
+    arg_tmpl   = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_goal   = args[1]
+    arg_set    = rt.prolog_get_variable (args[2], g.env, g.location)
+
+    if not isinstance (arg_goal, Predicate):
+        raise PrologRuntimeError('set_findall: predicate goal expected, %s found instead.' % repr(arg_goal), g.location)
+        
+    solutions = rt.search_predicate(arg_goal.name, arg_goal.args, env=g.env, location=g.location, err_on_missing=False)
+    
+    rs = set()
+    for s in solutions:
+        rs.add(s[arg_tmpl])
+        
+    g.env[arg_set] = SetLiteral(rs)
+
+    return True
 
 ASSERT_OVERLAY_VAR_NAME = '__OVERLAYZ__'
 

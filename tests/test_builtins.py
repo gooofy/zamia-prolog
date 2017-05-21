@@ -268,6 +268,18 @@ class TestBuiltins (unittest.TestCase):
 
         logging.debug(repr(solutions))
 
+    # @unittest.skip("temporarily disabled")
+    def test_set_findall(self):
+
+        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE, self.db)
+
+        clause = self.parser.parse_line_clause_body('set_findall(X, woman(X), S)')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions[0]), 1)
+        self.assertEqual (len(solutions[0]['S'].s), 3)
+
+        logging.debug(repr(solutions))
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
