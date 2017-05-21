@@ -525,6 +525,52 @@ def builtin_dict_get(g, rt):
 
     return res
 
+def builtin_set_add(g, rt):
+
+    """ set_add (?Set, +Value) """
+
+    rt._trace ('CALLED BUILTIN set_add', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('set_add: 2 args (?Set, +Value) expected.', g.location)
+
+    arg_set    = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_val    = rt.prolog_eval         (args[1], g.env, g.location)
+
+    if not arg_set in g.env:
+        g.env[arg_set] = SetLiteral(set([arg_val]))
+    else:
+        s2 = deepcopy(g.env[arg_set].s)
+        s2.add(arg_val)
+        g.env[arg_set] = SetLiteral(s2)
+
+    return True
+
+def builtin_set_get(g, rt):
+
+    """ set_get (+Set, ?Key, -Value) """
+
+    rt._trace ('CALLED BUILTIN set_get', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('set_get: 2 args (+Set, -Value) expected.', g.location)
+
+    arg_set    = rt.prolog_get_set      (args[0], g.env, g.location)
+    arg_val    = rt.prolog_get_variable (args[1], g.env, g.location)
+
+    res = []
+
+    for v in arg_set.s:
+        res.append({arg_val: v})
+
+    return res
+
 ASSERT_OVERLAY_VAR_NAME = '__OVERLAYZ__'
 
 def do_assertz(env, name, clause, res={}):

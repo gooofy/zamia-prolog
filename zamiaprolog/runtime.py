@@ -170,6 +170,11 @@ class PrologRuntime(object):
         self.register_builtin('dict_put',        builtin_dict_put)       # dict_put (?Dict, +Key, +Value)
         self.register_builtin('dict_get',        builtin_dict_get)       # dict_get (+Dict, ?Key, -Value)
 
+        # sets
+
+        self.register_builtin('set_add',         builtin_set_add)       # set_add (?Set, +Value)
+        self.register_builtin('set_get',         builtin_set_get)       # set_get (+Set, -Value)
+
         # assert, rectract...
 
         self.register_builtin('assertz',         builtin_assertz)        # assertz (+P)
@@ -304,6 +309,14 @@ class PrologRuntime(object):
 
         if not isinstance(t, DictLiteral):
             raise PrologRuntimeError('Dict expected, %s found instead.' % term.__class__, location)
+        return t
+
+    def prolog_get_set(self, term, env, location):
+
+        t = self.prolog_eval (term, env, location)
+
+        if not isinstance(t, SetLiteral):
+            raise PrologRuntimeError('Set expected, %s found instead.' % term.__class__, location)
         return t
 
     def prolog_get_variable(self, term, env, location):
