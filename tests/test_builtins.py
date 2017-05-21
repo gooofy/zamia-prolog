@@ -258,6 +258,16 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions), 1)
         self.assertNotEqual (solutions[0]['I'].name, solutions[0]['J'].name)
 
+    # @unittest.skip("temporarily disabled")
+    def test_sets(self):
+
+        clause = self.parser.parse_line_clause_body('set_add(S, 42), set_add(S, 23), set_add(S, 23), set_get(S, V)')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions[0]), 2)
+        self.assertEqual (len(solutions[0]['S'].s), 2)
+
+        logging.debug(repr(solutions))
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
