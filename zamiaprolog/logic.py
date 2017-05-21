@@ -110,6 +110,9 @@ class StringLiteral(Literal):
     def to_dict(self):
         return {'pt': 'StringLiteral', 's': self.s}
 
+    def __hash__(self):
+        return hash(self.s)
+
 class NumberLiteral(Literal):
 
     def __init__(self, f=None, json_dict=None):
@@ -162,6 +165,9 @@ class NumberLiteral(Literal):
 
     def to_dict(self):
         return {'pt': 'NumberLiteral', 'f': self.f}
+
+    def __hash__(self):
+        return hash(self.f)
 
 class ListLiteral(Literal):
 
@@ -236,6 +242,43 @@ class DictLiteral(Literal):
 
     def to_dict(self):
         return {'pt': 'DictLiteral', 'd': self.d}
+
+class SetLiteral(Literal):
+
+    def __init__(self, s=None, json_dict=None):
+        if json_dict:
+            self.s = json_dict['s']
+        else:
+            self.s = s
+
+    def __eq__(self, other):
+
+        if not isinstance(other, SetLiteral):
+            return False
+
+        return other.s == self.s
+
+    def __ne__(self, other):
+
+        if not isinstance(other, SetLiteral):
+            return True
+
+        return other.s != self.s
+
+    def get_literal(self):
+        return self.s
+
+    def __unicode__(self):
+        return unicode(self.s)
+
+    def __str__(self):
+        return str(self.s)
+
+    def __repr__(self):
+        return repr(self.s)
+
+    def to_dict(self):
+        return {'pt': 'SetLiteral', 's': self.s}
 
 class Variable(JSONLogic):
 
@@ -407,6 +450,8 @@ def _prolog_from_json(o):
         return ListLiteral (json_dict=o)
     if o['pt'] == 'DictLiteral':
         return DictLiteral (json_dict=o)
+    if o['pt'] == 'SetLiteral':
+        return SetLiteral (json_dict=o)
     if o['pt'] == 'Variable':
         return Variable (json_dict=o)
     if o['pt'] == 'SourceLocation':
