@@ -351,6 +351,30 @@ def builtin_true(g, rt):
 
     return True
  
+def builtin_ignore(g, rt):
+
+    """ ignore (+Template, +Goal, -Set) """
+
+    rt._trace ('CALLED BUILTIN ignore', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('ignore: 1 arg (+P) expected.', g.location)
+
+    arg_p   = args[0]
+
+    if not isinstance (arg_p, Predicate):
+        raise PrologRuntimeError('ignore: predicate expected, %s found instead.' % repr(arg_p), g.location)
+        
+    solutions = rt.search_predicate(arg_p.name, arg_p.args, env=g.env, location=g.location, err_on_missing=False)
+    
+    if len(solutions)>0:
+        return solutions
+
+    return True
+
 def builtin_list_contains(g, rt):
 
     rt._trace ('CALLED BUILTIN list_contains', g)
