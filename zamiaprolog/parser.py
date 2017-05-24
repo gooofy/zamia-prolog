@@ -87,7 +87,7 @@ SYM_NONE       =  0
 SYM_EOF        =  1
 SYM_STRING     =  2   # 'abc'
 SYM_NAME       =  3   # abc aWord =< is div + 
-SYM_VARIABLE   =  4   # X Avariable _Variable _
+SYM_VARIABLE   =  4   # X Variable _Variable _
 SYM_NUMBER     =  5  
 SYM_MACRO_NAME =  6   # name starting with '@', required to contain a colon
 
