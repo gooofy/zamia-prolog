@@ -334,9 +334,18 @@ class Predicate(JSONLogic):
         return u'Predicate(' + self.__unicode__() + ')'
 
     def __eq__(self, other):
-        return (isinstance(other, Predicate)
-                and self.name == other.name
-                and list(self.args) == list(other.args))
+        return isinstance(other, Predicate) \
+               and self.name == other.name  \
+               and self.args == other.args
+
+    def __ne__(self, other):
+        if not isinstance(other, Predicate):
+            return True
+        if self.name != other.name:
+            return True
+        if self.args != other.args:
+            return True
+        return False
 
     def to_dict(self):
         return {'pt'  : 'Predicate', 
