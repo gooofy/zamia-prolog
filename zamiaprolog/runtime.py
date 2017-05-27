@@ -153,7 +153,7 @@ class PrologRuntime(object):
 
         # debug, tracing, control
 
-        self.register_builtin('log',             builtin_log)            # log (+Level, +Term)
+        self.register_builtin('log',             builtin_log)            # log (+Level, +Terms...)
         self.register_builtin('trace',           builtin_trace)          # trace (+OnOff)
         self.register_builtin('true',            builtin_true)           # true
         self.register_builtin('ignore',          builtin_ignore)         # ignore (+P)

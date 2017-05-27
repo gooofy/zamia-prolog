@@ -25,6 +25,7 @@ import sys
 import datetime
 import dateutil.parser
 import time
+import logging
 import pytz # $ pip install pytz
 
 from tzlocal import get_localzone # $ pip install tzlocal
@@ -34,6 +35,9 @@ import model
 
 from logic   import *
 from errors  import *
+
+PROLOG_LOGGER_NAME = 'prolog'
+prolog_logger = logging.getLogger(PROLOG_LOGGER_NAME)
 
 def builtin_cmp_op(g, op, rt):
 
@@ -288,29 +292,38 @@ def builtin_nl(g, rt):
 
 def builtin_log(g, rt):
 
-    """ log (+Level, +Term) """
+    """ log (+Level, +Terms...) """
+
+    global prolog_logger
 
     rt._trace ('CALLED BUILTIN log', g)
 
     pred = g.terms[g.inx]
     args = pred.args
-    if len(args) != 2:
-        raise PrologRuntimeError('log: 2 args (+Level, +Term) expected.', g.location)
+    if len(args) < 2:
+        raise PrologRuntimeError('log: at least 2 args (+Level, +Terms...) expected.', g.location)
 
     l = rt.prolog_get_constant(args[0], g.env, g.location)
-    t = rt.prolog_eval        (args[1], g.env, g.location)
 
-    if isinstance (t, StringLiteral):
-        s = t.s
-    else:
-        s = unicode(t)
+    s = u''
+
+    for a in args[1:]:
+        t = rt.prolog_eval (a, g.env, g.location)
+
+        if len(s)>0:
+            s += ' '
+
+        if isinstance (t, StringLiteral):
+            s += t.s
+        else:
+            s += unicode(t)
         
     if l == u'debug':
-        logging.debug(s)
+        prolog_logger.debug(s)
     elif l == u'info':
-        logging.info(s)
+        prolog_logger.info(s)
     elif l == u'error':
-        logging.error(s)
+        prolog_logger.error(s)
     else:
         raise PrologRuntimeError('log: unknown level %s, one of (debug, info, error) expected.' % l, g.location)
 
