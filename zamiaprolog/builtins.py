@@ -504,6 +504,30 @@ def builtin_list_append(g, rt):
 
     return True
 
+def builtin_list_extend(g, rt):
+
+    """ list_extend (?List, +Element) """
+
+    rt._trace ('CALLED BUILTIN list_extend', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('list_extend: 2 args (?List, +Element) expected.', g.location)
+
+    arg_list    = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_element = rt.prolog_eval         (args[1], g.env, g.location)
+
+    if not arg_list in g.env:
+        g.env[arg_list] = ListLiteral([arg_element])
+    else:
+        l2 = deepcopy(g.env[arg_list].l)
+        l2.extend(arg_element.l)
+        g.env[arg_list] = ListLiteral(l2)
+
+    return True
+
 def builtin_list_str_join(g, rt):
 
     """ list_str_join (+Glue, +List, -Str) """
