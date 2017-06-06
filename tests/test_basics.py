@@ -233,16 +233,16 @@ class TestZamiaProlog (unittest.TestCase):
 
     def test_clauses_location(self):
 
-        # this will trigger a runtime error since Y is not bound, 
-        # but format_str requires a bound value
-        clause = self.parser.parse_line_clause_body('X is format_str("%s", Y)')
+        # this will trigger a runtime error since a(Y) is a predicate,
+        # but format_str requires a literal arg
+        clause = self.parser.parse_line_clause_body('X is format_str("%s", a(Y))')
         logging.debug('clause: %s' % clause)
         try:
             solutions = self.rt.search(clause, {})
             self.fail("we should have seen a runtime error here")
         except PrologRuntimeError as e:
             self.assertEqual (e.location.line, 1)
-            self.assertEqual (e.location.col, 26)
+            self.assertEqual (e.location.col, 29)
 
 if __name__ == "__main__":
 

@@ -235,10 +235,19 @@ class PrologRuntime(object):
 
                 return op(a.f, b.f)
 
-            # engine-provided builtin function ?
+            have_vars = False
+            args = []
+            for arg in term.args : 
+                a = self.prolog_eval(arg, env, location)
+                if isinstance(a, Variable):
+                    have_vars = True
+                args.append(a)
 
-            if term.name in self.builtin_functions:
-                return self.builtin_functions[term.name](term, env, self, location)
+            # engine-provided builtin function ?
+            if term.name in self.builtin_functions and not have_vars:
+                return self.builtin_functions[term.name](args, env, self, location)
+
+            return Predicate(term.name, args)
 
         if isinstance (term, ListLiteral):
             return ListLiteral (map (lambda x: self.prolog_eval(x, env, location), term.l))
@@ -253,13 +262,9 @@ class PrologRuntime(object):
                 return term
             else: 
                 return self.prolog_eval(ans, env, location)
-        args = []
-        for arg in term.args : 
-            a = self.prolog_eval(arg, env, location)
-            if not a: 
-                return None
-            args.append(a)
-        return Predicate(term.name, args)
+
+        raise PrologError('Internal error: prolog_eval on unhandled object: %s' % repr(term), location)
+
 
     # helper functions (used by builtin predicates)
     def prolog_get_int(self, term, env, location):

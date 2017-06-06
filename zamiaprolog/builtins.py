@@ -791,16 +791,20 @@ def builtin_gensym(g, rt):
 # functions
 #
 
-def builtin_format_str(pred, env, rt, location):
+def builtin_format_str(args, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION format_str', env)
 
-    args  = pred.args
-    arg_F = rt.prolog_get_string(args[0], env, location)
+    arg_F = args[0].s
 
     if len(args)>1:
-        
-        a = map(lambda x: rt.prolog_get_literal(x, env, location), args[1:])
+       
+        a = []
+        for arg in args[1:]:
+            if not isinstance(arg, Literal):
+                raise PrologRuntimeError ('format_str: literal expected, %s found instead' % arg, location)
+
+        a = map(lambda x: x.get_literal(), args[1:])
 
         f_str = arg_F % tuple(a)
 
@@ -810,13 +814,14 @@ def builtin_format_str(pred, env, rt, location):
 
     return StringLiteral(f_str)
 
-def _builtin_list_lambda (pred, env, rt, l, location):
+def _builtin_list_lambda (args, env, rt, l, location):
 
-    args = pred.args
     if len(args) != 1:
-        raise PrologRuntimeError('list builtin fn: 1 arg expected.')
+        raise PrologRuntimeError('list builtin fn: 1 arg expected.', location)
 
-    arg_list = rt.prolog_get_list (args[0], env, location)
+    arg_list = args[0]
+    if not isinstance(arg_list, ListLiteral):
+        raise PrologRuntimeError('list builtin fn: list expected, %s found instead.' % arg_list, location)
 
     res = reduce(l, arg_list.l)
     return res, arg_list.l
@@ -825,40 +830,39 @@ def _builtin_list_lambda (pred, env, rt, l, location):
     # else:
     #     return StringLiteral(unicode(res))
 
-def builtin_list_max(pred, env, rt, location):
+def builtin_list_max(args, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_max', env)
 
-    return _builtin_list_lambda (pred, env, rt, lambda x, y: x if x > y else y, location)[0]
+    return _builtin_list_lambda (args, env, rt, lambda x, y: x if x > y else y, location)[0]
 
-def builtin_list_min(pred, env, rt, location):
+def builtin_list_min(args, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_min', env)
 
-    return _builtin_list_lambda (pred, env, rt, lambda x, y: x if x < y else y, location)[0]
+    return _builtin_list_lambda (args, env, rt, lambda x, y: x if x < y else y, location)[0]
 
-def builtin_list_sum(pred, env, rt, location):
+def builtin_list_sum(args, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_sum', env)
 
-    return _builtin_list_lambda (pred, env, rt, lambda x, y: x + y, location)[0]
+    return _builtin_list_lambda (args, env, rt, lambda x, y: x + y, location)[0]
 
-def builtin_list_avg(pred, env, rt, location):
+def builtin_list_avg(args, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_avg', env)
 
-    l_sum, l = _builtin_list_lambda (pred, env, rt, lambda x, y: x + y, location)
+    l_sum, l = _builtin_list_lambda (args, env, rt, lambda x, y: x + y, location)
 
     assert len(l)>0
     return l_sum / NumberLiteral(float(len(l)))
 
-def builtin_list_len(pred, env, rt, location):
+def builtin_list_len(args, env, rt, location):
 
     rt._trace_fn ('CALLED FUNCTION list_len', env)
 
-    args = pred.args
     if len(args) != 1:
-        raise PrologRuntimeError('list builtin fn: 1 arg expected.')
+        raise PrologRuntimeError('list builtin fn: 1 arg expected.', location)
 
     arg_list = rt.prolog_get_list (args[0], env, location)
     return NumberLiteral(len(arg_list.l))

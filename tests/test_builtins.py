@@ -278,7 +278,15 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions[0]), 1)
         self.assertEqual (len(solutions[0]['S'].s), 3)
 
+
+    # @unittest.skip("temporarily disabled")
+    def test_eval_functions(self):
+
+        clause = self.parser.parse_line_clause_body('X is [23, 42], Y is [list_avg(X), list_sum(Z)]')
+        solutions = self.rt.search(clause)
         logging.debug(repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (len(solutions[0]['Y'].l), 2)
 
 if __name__ == "__main__":
 
