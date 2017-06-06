@@ -233,6 +233,30 @@ def builtin_sub_string(g, rt):
         
     return True
 
+def builtin_str_append(g, rt):
+
+    """ str_append (?String, +Append) """
+
+    rt._trace ('CALLED BUILTIN str_append', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('str_append: 2 args (?String, +Append) expected.', g.location)
+
+    arg_str     = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_append  = rt.prolog_eval         (args[1], g.env, g.location)
+
+    if not arg_str in g.env:
+        g.env[arg_str] = StringLiteral(arg_append.s)
+    else:
+        s2 = deepcopy(g.env[arg_str].s)
+        s2 += arg_append.s
+        g.env[arg_str] = StringLiteral(s2)
+
+    return True
+
 def builtin_atom_chars(g, rt):
 
     rt._trace ('CALLED BUILTIN atom_chars', g)

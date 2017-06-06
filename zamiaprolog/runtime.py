@@ -138,6 +138,7 @@ class PrologRuntime(object):
         # strings
 
         self.register_builtin('sub_string',      builtin_sub_string)
+        self.register_builtin('str_append',      builtin_str_append) # str_append (?String, +Append)
         self.register_builtin('atom_chars',      builtin_atom_chars)
 
         # time and date
@@ -351,7 +352,7 @@ class PrologRuntime(object):
 
         return term
 
-    def _unify (self, src, srcEnv, dest, destEnv, location) :
+    def _unify (self, src, srcEnv, dest, destEnv, location, overwrite_vars) :
         "update dest env from src. return true if unification succeeds"
         # logging.debug("Unify %s %s to %s %s" % (src, srcEnv, dest, destEnv))
 
@@ -362,12 +363,12 @@ class PrologRuntime(object):
             if not srcVal: 
                 return True 
             else: 
-                return self._unify(srcVal, srcEnv, dest, destEnv, location)
+                return self._unify(srcVal, srcEnv, dest, destEnv, location, overwrite_vars)
 
         if isinstance (dest, Variable):
             destVal = self.prolog_eval(dest, destEnv, location)     # evaluate destination
-            if destVal: 
-                return self._unify(src, srcEnv, destVal, destEnv, location)
+            if destVal and not overwrite_vars: 
+                return self._unify(src, srcEnv, destVal, destEnv, location, overwrite_vars)
             else:
                 destEnv[dest.name] = self.prolog_eval(src, srcEnv, location)
                 return True                         # unifies. destination updated
@@ -386,7 +387,7 @@ class PrologRuntime(object):
             return False
         else:
             for i in range(len(src.args)):
-                if not self._unify(src.args[i], srcEnv, dest.args[i], destEnv, location):
+                if not self._unify(src.args[i], srcEnv, dest.args[i], destEnv, location, overwrite_vars):
                     return False
 
             # always unify implicit overlay variable:
@@ -476,7 +477,7 @@ class PrologRuntime(object):
                                          inx      = g.parent.inx,
                                          location = g.parent.location)
                     self._unify (g.head, g.env,
-                                 parent.terms[parent.inx], parent.env, g.location)
+                                 parent.terms[parent.inx], parent.env, g.location, overwrite_vars = True)
                     parent.inx = parent.inx+1           # advance to next goal in body
                     queue.insert(0, parent)             # let it wait its turn
 
@@ -498,7 +499,7 @@ class PrologRuntime(object):
                                          inx      = g.parent.inx,
                                          location = g.parent.location)
                     self._unify (g.head, g.env,
-                                 parent.terms[parent.inx], parent.env, g.location)
+                                 parent.terms[parent.inx], parent.env, g.location, overwrite_vars = True)
                     g       = parent
                     succeed = False
 
@@ -631,7 +632,7 @@ class PrologRuntime(object):
                 else:
                     child = PrologGoal(clause.head, [], g, env={}, location=clause.location)
 
-                ans = self._unify (pred, g.env, clause.head, child.env, g.location)
+                ans = self._unify (pred, g.env, clause.head, child.env, g.location, overwrite_vars = False)
                 if ans:                             # if unifies, queue it up
                     queue.insert(0, child)
                     success = True

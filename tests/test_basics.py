@@ -140,13 +140,29 @@ class TestZamiaProlog (unittest.TestCase):
 
         self.parser.compile_file('samples/or_test.pl', UNITTEST_MODULE, self.db)
 
-        self.rt.set_trace(True)
-
         clause = self.parser.parse_line_clause_body(u'woman(mary); woman(jody)')
         logging.debug(u'clause: %s' % clause)
         solutions = self.rt.search(clause)
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 1)
+
+    def test_or_bindings(self):
+
+        self.rt.set_trace(True)
+
+        clause = self.parser.parse_line_clause_body(u'S is "a", or(str_append(S, "b"), str_append(S, "c"))')
+        logging.debug(u'clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 2)
+        self.assertEqual (solutions[0]['S'].s, "ab")
+        self.assertEqual (solutions[1]['S'].s, "ac")
+
+        clause = self.parser.parse_line_clause_body(u'X is 42; X is 23')
+        logging.debug(u'clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 2)
 
 
     def test_var_access(self):
