@@ -240,6 +240,9 @@ class PrologRuntime(object):
             if term.name in self.builtin_functions:
                 return self.builtin_functions[term.name](term, env, self, location)
 
+        if isinstance (term, ListLiteral):
+            return ListLiteral (map (lambda x: self.prolog_eval(x, env, location), term.l))
+
         if isinstance (term, Literal):
             return term
         if isinstance (term, MacroCall):
@@ -247,7 +250,7 @@ class PrologRuntime(object):
         if isinstance (term, Variable):
             ans = env.get(term.name)
             if not ans:
-                return None
+                return term
             else: 
                 return self.prolog_eval(ans, env, location)
         args = []
@@ -361,14 +364,14 @@ class PrologRuntime(object):
 
         if isinstance (src, Variable):
             srcVal = self.prolog_eval(src, srcEnv, location)
-            if not srcVal: 
+            if isinstance (srcVal, Variable): 
                 return True 
             else: 
                 return self._unify(srcVal, srcEnv, dest, destEnv, location, overwrite_vars)
 
         if isinstance (dest, Variable):
             destVal = self.prolog_eval(dest, destEnv, location)     # evaluate destination
-            if destVal and not overwrite_vars: 
+            if not isinstance(destVal, Variable) and not overwrite_vars: 
                 return self._unify(src, srcEnv, destVal, destEnv, location, overwrite_vars)
             else:
                 destEnv[dest.name] = self.prolog_eval(src, srcEnv, location)
@@ -545,7 +548,7 @@ class PrologRuntime(object):
                     ques = self.prolog_eval(pred.args[0], g.env, g.location)
                     ans  = self.prolog_eval(pred.args[1], g.env, g.location)
 
-                    if ques == None :
+                    if isinstance(ques, Variable):
                         g.env[pred.args[0].name] = ans  # Set variable
 
                     elif ques != ans :                  # Mismatch, fail

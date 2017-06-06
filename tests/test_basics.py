@@ -219,6 +219,18 @@ class TestZamiaProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 0)
 
+    # @unittest.skip("temporarily disabled")
+    def test_list_eval(self):
+
+        clause = self.parser.parse_line_clause_body('X is 23, Z is 42, Y is [X, U, Z].')
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (len(solutions[0]['Y'].l), 3)
+        self.assertEqual (solutions[0]['Y'].l[0].f, 23.0)
+        self.assertTrue  (isinstance(solutions[0]['Y'].l[1], Variable))
+        self.assertEqual (solutions[0]['Y'].l[2].f, 42.0)
+
     def test_clauses_location(self):
 
         # this will trigger a runtime error since Y is not bound, 

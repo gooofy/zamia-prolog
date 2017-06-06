@@ -210,18 +210,19 @@ def builtin_sub_string(g, rt):
                 raise PrologRuntimeError('sub_string: arg_Length: Number expected, %s found instead.' % arg_Length.__class__, g.location)
             length = int(arg_Length.f)
 
-            if arg_After:
+            if not isinstance(arg_After, Variable):
                 raise PrologRuntimeError('sub_string: FIXME: arg_After required to be a variable for now.', g.location)
             else:
 
-                var_After = rt.prolog_get_variable(args[3], g.env, g.location)
+                var_After = arg_After.name
+
                 if var_After != '_':
                     g.env[var_After] = NumberLiteral(len(arg_String) - before - length)
 
-                if arg_SubString:
+                if not isinstance(arg_SubString, Variable):
                     raise PrologRuntimeError('sub_string: FIXME: arg_SubString required to be a variable for now.', g.location)
                 else:
-                    var_SubString = rt.prolog_get_variable(args[4], g.env, g.location)
+                    var_SubString = arg_SubString.name
 
                     if var_SubString != '_':
                         g.env[var_SubString] = StringLiteral(arg_String[before:before + length])
@@ -269,16 +270,18 @@ def builtin_atom_chars(g, rt):
     arg_atom   = rt.prolog_eval(args[0], g.env, g.location)
     arg_str    = rt.prolog_eval(args[1], g.env, g.location)
 
-    if not arg_atom and not arg_str:
-        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.', g.location)
-    if arg_atom and arg_str:
-        raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.', g.location)
+    if isinstance (arg_atom, Variable):
+        if isinstance (arg_str, Variable):
+            raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.', g.location)
 
-    if arg_atom:
-        g.env[args[1].name] = StringLiteral(unicode(arg_atom))
+        g.env[arg_atom.name] = Predicate(arg_str.s)
+
     else:
-        g.env[args[0].name] = Predicate(arg_str.s)
-        
+        if not isinstance (arg_str, Variable):
+            raise PrologRuntimeError('atom_chars: exactly one arg has to be bound.', g.location)
+
+        g.env[arg_str.name] = StringLiteral(arg_atom.name)
+
     return True
 
 def builtin_write(g, rt):
@@ -596,9 +599,9 @@ def builtin_dict_get(g, rt):
 
     res = []
 
-    if not arg_key:
+    if isinstance(arg_key, Variable):
 
-        arg_key = rt.prolog_get_variable (args[1], g.env, g.location)
+        arg_key = arg_key.name
 
         for key in arg_dict.d:
             res.append({arg_key: StringLiteral(key), arg_val: arg_dict.d[key]})

@@ -288,6 +288,9 @@ class Variable(JSONLogic):
         else:
             self.name = name
   
+    def __repr__(self):
+        return u'Variable(' + self.__unicode__() + u')'
+
     def __str__(self):
         return self.name.encode('utf8')
 
