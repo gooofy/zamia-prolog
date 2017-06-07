@@ -263,7 +263,7 @@ class PrologRuntime(object):
             else: 
                 return self.prolog_eval(ans, env, location)
 
-        raise PrologError('Internal error: prolog_eval on unhandled object: %s' % repr(term), location)
+        raise PrologError('Internal error: prolog_eval on unhandled object: %s (%s)' % (repr(term), term.__class__), location)
 
 
     # helper functions (used by builtin predicates)
