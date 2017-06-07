@@ -509,7 +509,7 @@ def builtin_list_append(g, rt):
 
 def builtin_list_extend(g, rt):
 
-    """ list_extend (?List, +Element) """
+    """ list_extend (?List, +Elements) """
 
     rt._trace ('CALLED BUILTIN list_extend', g)
 
@@ -517,16 +517,19 @@ def builtin_list_extend(g, rt):
 
     args = pred.args
     if len(args) != 2:
-        raise PrologRuntimeError('list_extend: 2 args (?List, +Element) expected.', g.location)
+        raise PrologRuntimeError('list_extend: 2 args (?List, +Elements) expected.', g.location)
 
-    arg_list    = rt.prolog_get_variable (args[0], g.env, g.location)
-    arg_element = rt.prolog_eval         (args[1], g.env, g.location)
+    arg_list     = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_elements = rt.prolog_eval         (args[1], g.env, g.location)
+
+    if not isinstance(arg_elements, ListLiteral):
+        raise PrologRuntimeError('list_extend: list type elements expected', g.location)
 
     if not arg_list in g.env:
-        g.env[arg_list] = ListLiteral([arg_element])
+        g.env[arg_list] = arg_elements
     else:
         l2 = deepcopy(g.env[arg_list].l)
-        l2.extend(arg_element.l)
+        l2.extend(arg_elements.l)
         g.env[arg_list] = ListLiteral(l2)
 
     return True
