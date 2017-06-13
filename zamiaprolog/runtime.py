@@ -440,11 +440,7 @@ class PrologRuntime(object):
                 logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(goal.env[k]), 100)))
 
         if ASSERT_OVERLAY_VAR_NAME in goal.env:
-            for k in sorted(goal.env[ASSERT_OVERLAY_VAR_NAME]):
-                for clause in goal.env[ASSERT_OVERLAY_VAR_NAME][k]:
-                    logging.info(u"%s   [O] %s" % (indent, limit_str(unicode(clause), 100)))
-
-
+            goal.env[ASSERT_OVERLAY_VAR_NAME].log_trace(indent)
             
         # import pdb; pdb.set_trace()
 

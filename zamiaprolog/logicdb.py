@@ -30,7 +30,8 @@ from sqlalchemy.orm import sessionmaker
 
 import model
 
-from logic  import *
+from logic        import *
+from nltools.misc import limit_str
 
 class LogicDB(object):
 
@@ -87,7 +88,7 @@ class LogicDB(object):
                                      doc    = doc)
         self.session.add(ormd)
 
-    def lookup (self, name, overlayZ=None):
+    def lookup (self, name, overlay=None):
 
         # FIXME: DB caching ?
 
@@ -99,12 +100,9 @@ class LogicDB(object):
         for ormc in self.session.query(model.ORMClause).filter(model.ORMClause.head==name).all():
 
             res.append (json_to_prolog(ormc.prolog))
-        
-        # append overlay clauses
-
-        if overlayZ and name in overlayZ:
-            for clause in overlayZ[name]:
-                res.append(clause)
+       
+        if overlay:
+            res = overlay.do_filter(name, res)
 
         return res
 
@@ -116,6 +114,61 @@ class LogicDB(object):
 
         if commit:
             self.commit()
+
+class LogicDBOverlay(object):
+
+    def __init__(self):
+
+        self.d_assertz   = {}
+        self.d_retracted = {}
+
+    def clone(self):
+        clone = LogicDBOverlay()
+
+        for name in self.d_assertz:
+            for c in self.d_assertz[name]:
+                clone.assertz(name, c)
+
+        for name in self.d_retracted:
+            for c in self.d_retracted[name]:
+                clone.retractall(c)
+
+        return clone
+
+    def assertz (self, clause):
+
+        name = clause.head.name
+
+        if name in self.d_assertz:
+            self.d_assertz[name].append(clause)
+        else:
+            self.d_assertz[name] = [clause]
+
+
+    def retractall (self, clause):
+        import pdb; pdb.set_trace()
+        pass # FIXME
+
+    def do_filter (self, name, res):
+
+        # FIXME: retract
+        if name in self.d_retracted:
+            import pdb; pdb.set_trace()
+
+        # append overlay clauses
+
+        if name in self.d_assertz:
+            for clause in self.d_assertz[name]:
+                res.append(clause)
+
+        return res
+
+    def log_trace (self, indent):
+        for k in sorted(self.d_assertz):
+            for clause in self.d_assertz[k]:
+                logging.info(u"%s   [O] %s" % (indent, limit_str(unicode(clause), 100)))
+        # FIXME: log retracted clauses?
+
 
 # class LogicMemDB(object):
 # 

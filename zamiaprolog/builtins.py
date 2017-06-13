@@ -34,6 +34,7 @@ from copy    import deepcopy
 import model
 
 from logic   import *
+from logicdb import LogicDBOverlay
 from errors  import *
 
 PROLOG_LOGGER_NAME = 'prolog'
@@ -693,22 +694,20 @@ def builtin_set_findall(g, rt):
 
 ASSERT_OVERLAY_VAR_NAME = '__OVERLAYZ__'
 
-def do_assertz(env, name, clause, res={}):
+def do_assertz(env, clause, res={}):
 
-    ov = res.get(ASSERT_OVERLAY_VAR_NAME)
-    if ov is None:
-        ov = env.get(ASSERT_OVERLAY_VAR_NAME)
+    ovl = res.get(ASSERT_OVERLAY_VAR_NAME)
+    if ovl is None:
+        ovl = env.get(ASSERT_OVERLAY_VAR_NAME)
 
-    if ov is None:
-        res[ASSERT_OVERLAY_VAR_NAME] = {name: [clause]}
+    if ovl is None:
+        ovl = LogicDBOverlay()
     else:
-        d2 = deepcopy(ov)
-        if name in d2:
-            d2[name].append(clause)
-        else:
-            d2[name] = [clause]
-        res[ASSERT_OVERLAY_VAR_NAME] = d2
-
+        ovl = ov.clone()
+        
+    ovl.assertz(clause)
+    res[ASSERT_OVERLAY_VAR_NAME] = ovl
+        
     return res
 
 def builtin_assertz(g, rt):
@@ -730,9 +729,7 @@ def builtin_assertz(g, rt):
     
     clause = Clause (head=arg_p, location=g.location)
 
-    name = arg_p.name
-
-    return [do_assertz(g.env, name, clause, res={})]
+    return [do_assertz(g.env, clause, res={})]
 
 def do_assertz_predicate(env, name, args, res={}, location=None):
 
@@ -752,7 +749,7 @@ def do_assertz_predicate(env, name, args, res={}, location=None):
         else:
             mapped_args.append(Predicate(arg))
 
-    return do_assertz (env, name, Clause(head=Predicate(name, mapped_args), location=location), res=res)
+    return do_assertz (env, Clause(head=Predicate(name, mapped_args), location=location), res=res)
 
 def do_gensym(rt, root):
 
