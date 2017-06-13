@@ -127,7 +127,7 @@ class LogicDBOverlay(object):
 
         for name in self.d_assertz:
             for c in self.d_assertz[name]:
-                clone.assertz(name, c)
+                clone.assertz(c)
 
         for name in self.d_retracted:
             for c in self.d_retracted[name]:

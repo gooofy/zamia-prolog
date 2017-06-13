@@ -703,7 +703,7 @@ def do_assertz(env, clause, res={}):
     if ovl is None:
         ovl = LogicDBOverlay()
     else:
-        ovl = ov.clone()
+        ovl = ovl.clone()
         
     ovl.assertz(clause)
     res[ASSERT_OVERLAY_VAR_NAME] = ovl

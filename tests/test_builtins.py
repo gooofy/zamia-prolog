@@ -249,6 +249,16 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['X'].name, 'qIsFamiliar')
 
 
+    @unittest.skip("temporarily disabled")
+    def test_retractall(self):
+
+        clause = self.parser.parse_line_clause_body('I is ias1, assertz(frame (I, a, x)), assertz(frame (I, b, y)), retractall(frame (I, _, _)), frame (ias1, a, X), frame(ias1, b, Y)')
+        solutions = self.rt.search(clause)
+        logging.debug(repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (solutions[0]['X'].name, 'qIsFamiliar')
+
+
     # @unittest.skip("temporarily disabled")
     def test_gensym(self):
 
