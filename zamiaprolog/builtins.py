@@ -751,6 +751,38 @@ def do_assertz_predicate(env, name, args, res={}, location=None):
 
     return do_assertz (env, Clause(head=Predicate(name, mapped_args), location=location), res=res)
 
+def do_retractall(env, p, res={}):
+
+    ovl = res.get(ASSERT_OVERLAY_VAR_NAME)
+    if ovl is None:
+        ovl = env.get(ASSERT_OVERLAY_VAR_NAME)
+
+    if ovl is None:
+        ovl = LogicDBOverlay()
+    else:
+        ovl = ovl.clone()
+        
+    ovl.retractall(p)
+    res[ASSERT_OVERLAY_VAR_NAME] = ovl
+        
+    return res
+
+def builtin_retractall(g, rt):
+
+    """ retractall (+P) """
+
+    rt._trace ('CALLED BUILTIN retractall', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('retractall: 1 arg (+P) expected.', g.location)
+
+    arg_p  = rt.prolog_get_predicate (args[0], g.env, g.location)
+
+    return [do_retractall(g.env, arg_p, res={})]
+
 def do_gensym(rt, root):
 
     orm_gn = rt.db.session.query(model.ORMGensymNum).filter(model.ORMGensymNum.root==root).first()

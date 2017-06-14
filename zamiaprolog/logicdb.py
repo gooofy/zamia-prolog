@@ -106,15 +106,6 @@ class LogicDB(object):
 
         return res
 
-    def store_overlayZ(self, module, overlayZ, commit=True):
-
-        for name in overlayZ:
-            for clause in overlayZ[name]:
-                self.store(module, clause)
-
-        if commit:
-            self.commit()
-
 class LogicDBOverlay(object):
 
     def __init__(self):
@@ -144,16 +135,57 @@ class LogicDBOverlay(object):
         else:
             self.d_assertz[name] = [clause]
 
+    def _match_p (self, p1, p2):
 
-    def retractall (self, clause):
-        import pdb; pdb.set_trace()
-        pass # FIXME
+        """ extremely simplified variant of full-blown unification - just enough to get basic retractall/1 working """
+
+        if isinstance (p1, Variable):
+            return True
+
+        if isinstance (p2, Variable):
+            return True
+
+        elif isinstance (p1, Literal):
+            return p1 == p2
+
+        elif p1.name != p2.name:
+            return False
+
+        elif len(p1.args) != len(p2.args): 
+            return False
+
+        else:
+            for i in range(len(p1.args)):
+                if not self._match_p(p1.args[i], p2.args[i]):
+                    return False
+
+        return True
+
+
+    def retractall (self, p):
+        name = p.name
+
+        if name in self.d_assertz:
+            l = []
+            for c in self.d_assertz[name]:
+                if not self._match_p(p, c.head):
+                    l.append(c)
+            self.d_assertz[name] = l
+
+        if name in self.d_retracted:
+            self.d_retracted[name].append(p)
+        else:
+            self.d_retracted[name] = [p]
 
     def do_filter (self, name, res):
 
-        # FIXME: retract
         if name in self.d_retracted:
-            import pdb; pdb.set_trace()
+            res2 = []
+            for clause in res:
+                for p in self.d_retracted[name]:
+                    if not self._match_p(clause.head, p):
+                        res2.append(clause)
+            res = res2
 
         # append overlay clauses
 
@@ -168,6 +200,27 @@ class LogicDBOverlay(object):
             for clause in self.d_assertz[k]:
                 logging.info(u"%s   [O] %s" % (indent, limit_str(unicode(clause), 100)))
         # FIXME: log retracted clauses?
+
+    def do_apply(self, module, db, commit=True):
+
+        to_delete = set()
+
+        for name in self.d_retracted:
+            for ormc in db.session.query(model.ORMClause).filter(model.ORMClause.head==name).all():
+                clause = json_to_prolog(ormc.prolog)
+                for p in self.d_retracted[name]:
+                    if self._match_p(clause.head, p):
+                        to_delete.add(ormc.id)
+
+        if to_delete:
+           db.session.query(model.ORMClause).filter(model.ORMClause.id.in_(list(to_delete))).delete(synchronize_session='fetch')
+
+        for name in self.d_assertz:
+            for clause in self.d_assertz[name]:
+                db.store(module, clause)
+
+        if commit:
+            db.commit()
 
 
 # class LogicMemDB(object):

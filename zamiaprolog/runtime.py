@@ -182,6 +182,7 @@ class PrologRuntime(object):
         # assert, rectract...
 
         self.register_builtin('assertz',         builtin_assertz)        # assertz (+P)
+        self.register_builtin('retractall',      builtin_retractall)     # retractall (+P)
         self.register_builtin('gensym',          builtin_gensym)         # gensym (+Root, -Unique)
 
 
@@ -508,7 +509,14 @@ class PrologRuntime(object):
                     g       = parent
                     succeed = False
 
-    def search (self, clause, env={}, err_on_missing=True):
+    def apply_overlay (self, module, solution, commit=True):
+
+        if not ASSERT_OVERLAY_VAR_NAME in solution:
+            return
+
+        solution[ASSERT_OVERLAY_VAR_NAME].do_apply(module, self.db, commit=True)
+
+    def search (self, clause, env={}, err_on_missing=False):
 
         if clause.body is None:
             return [{}]
