@@ -783,6 +783,37 @@ def builtin_retractall(g, rt):
 
     return [do_retractall(g.env, arg_p, res={})]
 
+
+def builtin_setz(g, rt):
+
+    """ setz (+P, +V) """
+
+    rt._trace ('CALLED BUILTIN setz', g)
+
+    # import pdb; pdb.set_trace()
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('setz: 2 args (+P, +V) expected.', g.location)
+
+    arg_p  = rt.prolog_get_predicate (args[0], g.env, g.location)
+    arg_v  = rt.prolog_eval          (args[1], g.env, g.location)
+
+    env = do_retractall(g.env, arg_p, res={})
+    
+    pa = []
+    for arg in arg_p.args:
+        if isinstance(arg, Variable):
+            pa.append(arg_v)
+        else:
+            pa.append(arg)
+
+    env = do_assertz (env, Clause(head=Predicate(arg_p.name, pa), location=g.location), res={})
+
+    return [env]
+
 def do_gensym(rt, root):
 
     orm_gn = rt.db.session.query(model.ORMGensymNum).filter(model.ORMGensymNum.root==root).first()

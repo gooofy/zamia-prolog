@@ -288,6 +288,14 @@ class TestBuiltins (unittest.TestCase):
         s2s = self.rt.search(clause)
         self.assertEqual (len(s2s), 0)
 
+    def test_setz(self):
+
+        clause = self.parser.parse_line_clause_body('assertz(frame (ias1, a, x)), assertz(frame (ias1, a, y)), setz(frame (ias1, a, _), z), frame (ias1, a, X)')
+        solutions = self.rt.search(clause)
+        logging.debug(repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (solutions[0]['X'].name, 'z')
+
     # @unittest.skip("temporarily disabled")
     def test_gensym(self):
 
@@ -330,7 +338,7 @@ class TestBuiltins (unittest.TestCase):
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.WARNING)
     
     unittest.main()
 
