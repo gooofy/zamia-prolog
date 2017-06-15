@@ -148,8 +148,6 @@ class TestZamiaProlog (unittest.TestCase):
 
     def test_or_bindings(self):
 
-        self.rt.set_trace(True)
-
         clause = self.parser.parse_line_clause_body(u'S is "a", or(str_append(S, "b"), str_append(S, "c"))')
         logging.debug(u'clause: %s' % clause)
         solutions = self.rt.search(clause)

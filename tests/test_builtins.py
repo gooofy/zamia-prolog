@@ -296,6 +296,21 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions), 1)
         self.assertEqual (solutions[0]['X'].name, 'z')
 
+    def test_setz_multi(self):
+
+        # self.rt.set_trace(True)
+
+        clause = self.parser.parse_line_clause_body('I is ias2, setz(ias (I, a, _), a), setz(ias (I, b, _), b), setz(ias (I, c, _), c), ias(I, X, Y). ')
+        solutions = self.rt.search(clause)
+        logging.debug(repr(solutions))
+        self.assertEqual (len(solutions), 3)
+        self.assertEqual (solutions[0]['X'].name, 'a')
+        self.assertEqual (solutions[0]['Y'].name, 'a')
+        self.assertEqual (solutions[1]['X'].name, 'b')
+        self.assertEqual (solutions[1]['Y'].name, 'b')
+        self.assertEqual (solutions[2]['X'].name, 'c')
+        self.assertEqual (solutions[2]['Y'].name, 'c')
+
     # @unittest.skip("temporarily disabled")
     def test_gensym(self):
 
