@@ -462,7 +462,7 @@ class PrologRuntime(object):
         for k in sorted(env):
             logging.info(u"%s   %s=%s" % (indent, k, limit_str(repr(env[k]), 80)))
 
-    def _finish_goal (self, g, succeed, queue, solutions):
+    def _finish_goal (self, g, succeed, stack, solutions):
 
         while True:
 
@@ -475,7 +475,7 @@ class PrologRuntime(object):
                     solutions.append(g.env)             # Record solution
 
                 else: 
-                    # queue up shallow copy of parent goal to resume
+                    # stack up shallow copy of parent goal to resume
                     parent = PrologGoal (head     = g.parent.head, 
                                          terms    = g.parent.terms, 
                                          parent   = g.parent.parent, 
@@ -486,7 +486,7 @@ class PrologRuntime(object):
                     self._unify (g.head, g.env,
                                  parent.terms[parent.inx], parent.env, g.location, overwrite_vars = True)
                     parent.inx = parent.inx+1           # advance to next goal in body
-                    queue.insert(0, parent)             # let it wait its turn
+                    stack.append(parent)                # put it on the stack
 
                 break
 
@@ -497,7 +497,7 @@ class PrologRuntime(object):
                     break
 
                 else: 
-                    # queue up shallow copy of parent goal to resume
+                    # prepare shallow copy of parent goal to resume
                     parent = PrologGoal (head     = g.parent.head, 
                                          terms    = g.parent.terms, 
                                          parent   = g.parent.parent, 
@@ -530,16 +530,16 @@ class PrologRuntime(object):
         else:
             raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
 
-        queue     = [ PrologGoal (clause.head, terms, env=copy.copy(env), location=clause.location) ]
+        stack     = [ PrologGoal (clause.head, terms, env=copy.copy(env), location=clause.location) ]
         solutions = []
 
-        while queue :
-            g = queue.pop()                         # Next goal to consider
+        while stack :
+            g = stack.pop()                         # Next goal to consider
 
             self._trace ('CONSIDER', g)
 
             if g.inx >= len(g.terms) :              # Is this one finished?
-                self._finish_goal (g, True, queue, solutions)
+                self._finish_goal (g, True, stack, solutions)
                 continue
 
             # No. more to do with this goal.
@@ -550,7 +550,6 @@ class PrologRuntime(object):
             # FIXME: debug only
             # if name == 'ias':
             #     import pdb; pdb.set_trace()
-            # import pdb; pdb.set_trace()
 
             if name in builtin_specials:
                 if name == 'is' :
@@ -562,35 +561,38 @@ class PrologRuntime(object):
                         g.env[pred.args[0].name] = ans  # Set variable
 
                     elif ques != ans :                  # Mismatch, fail
-                        self._finish_goal (g, False, queue, solutions)
+                        self._finish_goal (g, False, stack, solutions)
                         continue                
 
-                elif name == 'cut' : queue = [] # Zap the competition
+                elif name == 'cut':                     # zap the competition for the current goal
+                    while len(stack)>0 and stack[len(stack)-1].head.name == g.parent.head.name:
+                        stack.pop()
+
                 elif name == 'fail':            # Dont succeed
-                    self._finish_goal (g, False, queue, solutions)
+                    self._finish_goal (g, False, stack, solutions)
                     continue
 
                 elif name == 'not':
                     # insert negated sub-guoal
-                    queue.insert(0, PrologGoal(pred, pred.args, g, env=copy.copy(g.env), negate=True, location=g.location))
+                    stack.append(PrologGoal(pred, pred.args, g, env=copy.copy(g.env), negate=True, location=g.location))
                     continue
 
                 elif name == 'or':
 
                     # logging.debug ('   or clause detected.')
 
-                    for subgoal in pred.args:
+                    for subgoal in reversed(pred.args):
                         # logging.debug ('    subgoal: %s' % subgoal)
-                        queue.insert(0, PrologGoal(pred, [subgoal], g, env=copy.copy(g.env), location=g.location))
+                        stack.append(PrologGoal(pred, [subgoal], g, env=copy.copy(g.env), location=g.location))
 
                     continue
 
                 elif name == 'and':
-                    queue.insert(0, PrologGoal(pred, pred.args, g, env=copy.copy(g.env), location=g.location))
+                    stack.append(PrologGoal(pred, pred.args, g, env=copy.copy(g.env), location=g.location))
                     continue
 
                 g.inx = g.inx + 1               # Succeed. resume self.
-                queue.insert(0, g)
+                stack.append(g)
                 continue
 
             # builtin predicate ?
@@ -604,16 +606,16 @@ class PrologRuntime(object):
                     g.inx = g.inx + 1
                     if type(bindings) is list:
 
-                        for b in bindings:
+                        for b in reversed(bindings):
                             new_env = copy.copy(g.env)
                             new_env.update(b)
-                            queue.insert(0, PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx, location=g.location))
+                            stack.append(PrologGoal(g.head, g.terms, parent=g.parent, env=new_env, inx=g.inx, location=g.location))
 
                     else:
-                        queue.insert (0, g)
+                        stack.append(g)
 
                 else:
-                    self._finish_goal (g, False, queue, solutions)
+                    self._finish_goal (g, False, stack, solutions)
 
                 continue
 
@@ -626,20 +628,20 @@ class PrologRuntime(object):
                     raise PrologRuntimeError ('Failed to find predicate "%s" !' % pred.name, g.location)
                 else:
                     # simply fail
-                    self._finish_goal (g, False, queue, solutions)
+                    self._finish_goal (g, False, stack, solutions)
                     continue
 
 
             success = False
 
-            for clause in clauses:
+            for clause in reversed(clauses):
 
                 if len(clause.head.args) != len(pred.args): 
                     continue
 
                 # logging.debug('clause: %s' % clause)
 
-                # queue up child subgoal
+                # stack up child subgoal
 
                 if clause.body:
                     child = PrologGoal(clause.head, [clause.body], g, env={}, location=clause.location)
@@ -647,14 +649,14 @@ class PrologRuntime(object):
                     child = PrologGoal(clause.head, [], g, env={}, location=clause.location)
 
                 ans = self._unify (pred, g.env, clause.head, child.env, g.location, overwrite_vars = False)
-                if ans:                             # if unifies, queue it up
-                    queue.insert(0, child)
+                if ans:                             # if unifies, stack it up
+                    stack.append(child)
                     success = True
                     # logging.debug ("Queue %s" % str(child))
 
             if not success:
                 # make sure we explicitly fail for proper negation support
-                self._finish_goal (g, False, queue, solutions)
+                self._finish_goal (g, False, stack, solutions)
 
 
         return solutions

@@ -248,12 +248,17 @@ class TestZamiaProlog (unittest.TestCase):
 
         self.parser.compile_file('samples/cut_test.pl', UNITTEST_MODULE, self.db)
 
-        clause = self.parser.parse_line_clause_body(u'foo(R, 1)')
+        # self.rt.set_trace(True)
+
+        clause = self.parser.parse_line_clause_body(u'bar(R, X)')
         logging.debug(u'clause: %s' % clause)
         solutions = self.rt.search(clause)
         logging.debug('solutions: %s' % repr(solutions))
-        self.assertEqual (len(solutions), 1)
+        self.assertEqual (len(solutions), 4)
         self.assertEqual (solutions[0]['R'].s, "one")
+        self.assertEqual (solutions[1]['R'].s, "two")
+        self.assertEqual (solutions[2]['R'].s, "many")
+        self.assertEqual (solutions[3]['R'].s, "many")
 
 if __name__ == "__main__":
 
