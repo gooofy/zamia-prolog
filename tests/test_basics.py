@@ -244,6 +244,17 @@ class TestZamiaProlog (unittest.TestCase):
             self.assertEqual (e.location.line, 1)
             self.assertEqual (e.location.col, 29)
 
+    def test_cut(self):
+
+        self.parser.compile_file('samples/cut_test.pl', UNITTEST_MODULE, self.db)
+
+        clause = self.parser.parse_line_clause_body(u'foo(R, 1)')
+        logging.debug(u'clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (solutions[0]['R'].s, "one")
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
