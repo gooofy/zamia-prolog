@@ -116,13 +116,13 @@ class LogicDBOverlay(object):
     def clone(self):
         clone = LogicDBOverlay()
 
-        for name in self.d_assertz:
-            for c in self.d_assertz[name]:
-                clone.assertz(c)
-
         for name in self.d_retracted:
             for c in self.d_retracted[name]:
                 clone.retractall(c)
+
+        for name in self.d_assertz:
+            for c in self.d_assertz[name]:
+                clone.assertz(c)
 
         return clone
 
@@ -200,6 +200,24 @@ class LogicDBOverlay(object):
             for clause in self.d_assertz[k]:
                 logging.info(u"%s   [O] %s" % (indent, limit_str(unicode(clause), 100)))
         # FIXME: log retracted clauses?
+
+    def __unicode__ (self):
+        res = u'DBOvl('
+        for k in sorted(self.d_assertz):
+            for clause in self.d_assertz[k]:
+                res += u'+' + limit_str(unicode(clause), 40)
+        for k in sorted(self.d_retracted):
+            for p in self.d_retracted[k]:
+                res += u'-' + limit_str(unicode(p), 40)
+
+        res += u')'
+        return res
+
+    def __str__(self):
+        return unicode(self).encode('utf8')
+
+    def __repr__(self):
+        return unicode(self).encode('utf8')
 
     def do_apply(self, module, db, commit=True):
 
