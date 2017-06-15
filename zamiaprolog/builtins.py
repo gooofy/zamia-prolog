@@ -138,7 +138,7 @@ def builtin_get_time(g, rt):
 
     arg_T   = rt.prolog_get_variable(args[0], g.env, g.location)
 
-    dt = datetime.datetime.now()
+    dt = datetime.datetime.now().replace(tzinfo=pytz.UTC)
     g.env[arg_T] = StringLiteral(dt.isoformat())
 
     return True
