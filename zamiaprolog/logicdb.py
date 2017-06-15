@@ -97,7 +97,7 @@ class LogicDB(object):
 
         res = []
 
-        for ormc in self.session.query(model.ORMClause).filter(model.ORMClause.head==name).all():
+        for ormc in self.session.query(model.ORMClause).filter(model.ORMClause.head==name).order_by(model.ORMClause.id).all():
 
             res.append (json_to_prolog(ormc.prolog))
        
