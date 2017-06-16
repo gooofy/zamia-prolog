@@ -41,10 +41,7 @@ class LogicDB(object):
         self.Session = sessionmaker(bind=self.engine)
         self.session = self.Session()
         model.Base.metadata.create_all(self.engine)
-
-        # overlay for backtracking-safe assertZ support
-
-        self.overlayZ = {} # name = [clause, ...]
+        self.cache = {}
 
     def commit(self):
         logging.info("commit.")
@@ -59,6 +56,7 @@ class LogicDB(object):
 
         if commit:
             self.commit()
+        self.invalidate_cache()
 
     def clear_all_modules(self, commit=True):
 
@@ -69,6 +67,7 @@ class LogicDB(object):
         
         if commit:
             self.commit()
+        self.invalidate_cache()
 
     def store (self, module, clause):
 
@@ -80,7 +79,14 @@ class LogicDB(object):
         # print unicode(clause)
 
         self.session.add(ormc)
-       
+        self.invalidate_cache(clause.head.name)
+      
+    def invalidate_cache(self, name=None):
+        if name and name in self.cache:
+            del self.cache[name]
+        else:
+            self.cache = {}
+
     def store_doc (self, module, name, doc):
 
         ormd = model.ORMPredicateDoc(module = module,
@@ -90,16 +96,19 @@ class LogicDB(object):
 
     def lookup (self, name, overlay=None):
 
-        # FIXME: DB caching ?
+        # DB caching
 
-        # if name in self.clauses:
-        #     return self.clauses[name]
+        if name in self.cache:
+            res = copy(self.cache[name])
 
-        res = []
+        else:
+            res = []
 
-        for ormc in self.session.query(model.ORMClause).filter(model.ORMClause.head==name).order_by(model.ORMClause.id).all():
+            for ormc in self.session.query(model.ORMClause).filter(model.ORMClause.head==name).order_by(model.ORMClause.id).all():
 
-            res.append (json_to_prolog(ormc.prolog))
+                res.append (json_to_prolog(ormc.prolog))
+
+            self.cache[name] = copy(res)
        
         if overlay:
             res = overlay.do_filter(name, res)
@@ -232,6 +241,7 @@ class LogicDBOverlay(object):
 
         if to_delete:
            db.session.query(model.ORMClause).filter(model.ORMClause.id.in_(list(to_delete))).delete(synchronize_session='fetch')
+           db.invalidate_cache()
 
         for name in self.d_assertz:
             for clause in self.d_assertz[name]:
