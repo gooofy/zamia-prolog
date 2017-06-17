@@ -134,6 +134,7 @@ class PrologRuntime(object):
 
         self.register_builtin('increment',       builtin_increment) # increment (?V, +I)
         self.register_builtin('decrement',       builtin_decrement) # decrement (?V, +D)
+        self.register_builtin('between',         builtin_between)   # between (+Low, +High, ?Value)
 
         # strings
 

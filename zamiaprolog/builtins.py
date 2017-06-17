@@ -89,6 +89,30 @@ def builtin_arith_imp(g, op, rt):
 def builtin_increment(g, rt):       return builtin_arith_imp(g, lambda a,b: a+b ,rt)
 def builtin_decrement(g, rt):       return builtin_arith_imp(g, lambda a,b: a-b ,rt)
 
+def builtin_between(g, rt):
+
+    rt._trace ('CALLED BUILTIN between (+Low, +High, ?Value)', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 3:
+        raise PrologRuntimeError('between: 3 args (+Low, +High, ?Value) expected.', g.location)
+
+    arg_Low   = rt.prolog_get_float(args[0], g.env, g.location)
+    arg_High  = rt.prolog_get_float(args[1], g.env, g.location)
+    arg_Value = rt.prolog_eval(args[2], g.env, g.location)
+
+    if isinstance(arg_Value, Variable):
+
+        res = []
+        for i in range(int(arg_Low), int(arg_High)+1):
+            res.append({arg_Value.name: NumberLiteral(i)})
+
+        return res
+
+    v = arg_Value.f
+    return ( arg_Low <= v ) and ( arg_High >= v )
+
 def builtin_date_time_stamp(g, rt):
 
     # logging.debug( "builtin_date_time_stamp called, g: %s" % g)
