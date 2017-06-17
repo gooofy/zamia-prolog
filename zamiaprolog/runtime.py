@@ -147,6 +147,7 @@ class PrologRuntime(object):
         self.register_builtin('date_time_stamp', builtin_date_time_stamp)
         self.register_builtin('stamp_date_time', builtin_stamp_date_time)
         self.register_builtin('get_time',        builtin_get_time)
+        self.register_builtin('day_of_the_week', builtin_day_of_the_week) # day_of_the_week (+Date,-DayOfTheWeek)
 
         # I/O
 

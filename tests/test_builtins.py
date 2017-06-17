@@ -138,9 +138,10 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['Mn'].f, 2)
         self.assertEqual (solutions[0]['S'].f,  3)
 
-        clause = self.parser.parse_line_clause_body('date_time_stamp(date(2017,2,14,1,2,3,\'Europe/Berlin\'), TS)')
+        clause = self.parser.parse_line_clause_body('date_time_stamp(date(2017,2,14,1,2,3,\'Europe/Berlin\'), TS), day_of_the_week(TS, WD)')
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['TS'].s, '2017-02-14T01:02:03+01:00')
+        self.assertEqual (solutions[0]['WD'].f, 2)
 
     # @unittest.skip("temporarily disabled")
     def test_arith(self):

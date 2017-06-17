@@ -167,6 +167,26 @@ def builtin_get_time(g, rt):
 
     return True
 
+def builtin_day_of_the_week(g, rt):
+
+    """ day_of_the_week (+TS,-DayOfTheWeek) """
+
+    rt._trace ('CALLED BUILTIN day_of_the_week', g)
+
+    pred = g.terms[g.inx]
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('day_of_the_week: 2 args (+TS,-DayOfTheWeek) expected.', g.location)
+
+    arg_TS           = rt.prolog_get_string(args[0], g.env, g.location)
+    arg_DayOfTheWeek = rt.prolog_get_variable(args[1], g.env, g.location)
+
+    dt = dateutil.parser.parse(arg_TS)
+
+    g.env[arg_DayOfTheWeek] = NumberLiteral(dt.weekday()+1)
+
+    return True
+
 def builtin_stamp_date_time(g, rt):
 
     rt._trace ('CALLED BUILTIN stamp_date_time', g)
