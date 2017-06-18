@@ -258,6 +258,14 @@ class TestZamiaProlog (unittest.TestCase):
         self.assertEqual (solutions[2]['R'].s, "many")
         self.assertEqual (solutions[3]['R'].s, "many")
 
+    # @unittest.skip("temporarily disabled")
+    def test_anon_var(self):
+
+        clause = self.parser.parse_line_clause_body('_ is 23, _ is 42.')
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)

@@ -370,9 +370,9 @@ class PrologRuntime(object):
         "update dest env from src. return true if unification succeeds"
         # logging.debug("Unify %s %s to %s %s" % (src, srcEnv, dest, destEnv))
 
-        # FIXME: ?!? if src.pred == '_' or dest.pred == '_' : return sts(1,"Wildcard")
-
         if isinstance (src, Variable):
+            if src.name == u'_':
+                return True
             srcVal = self.prolog_eval(src, srcEnv, location)
             if isinstance (srcVal, Variable): 
                 return True 
@@ -380,6 +380,8 @@ class PrologRuntime(object):
                 return self._unify(srcVal, srcEnv, dest, destEnv, location, overwrite_vars)
 
         if isinstance (dest, Variable):
+            if dest.name == u'_':
+                return True
             destVal = self.prolog_eval(dest, destEnv, location)     # evaluate destination
             if not isinstance(destVal, Variable) and not overwrite_vars: 
                 return self._unify(src, srcEnv, destVal, destEnv, location, overwrite_vars)
@@ -561,7 +563,8 @@ class PrologRuntime(object):
                     ans  = self.prolog_eval(pred.args[1], g.env, g.location)
 
                     if isinstance(ques, Variable):
-                        g.env[pred.args[0].name] = ans  # Set variable
+                        if ques.name != u'_':
+                            g.env[ques.name] = ans  # Set variable
 
                     elif ques != ans :                  # Mismatch, fail
                         self._finish_goal (g, False, stack, solutions)
