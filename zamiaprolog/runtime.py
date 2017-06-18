@@ -165,6 +165,7 @@ class PrologRuntime(object):
 
         self.register_builtin('list_contains',   builtin_list_contains)
         self.register_builtin('list_nth',        builtin_list_nth)
+        self.register_builtin('length',          builtin_length)         # length (+List, -Len)
         self.register_builtin('list_slice',      builtin_list_slice)     # list_slice (+Idx1, +Idx2, +List, -Slice) 
         self.register_builtin('list_append',     builtin_list_append)    # list_append (?List, +Element)
         self.register_builtin('list_extend',     builtin_list_extend)    # list_extend (?List, +Element)

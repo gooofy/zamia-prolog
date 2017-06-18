@@ -91,6 +91,10 @@ class TestBuiltins (unittest.TestCase):
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['E'].f, 2)
 
+        clause = self.parser.parse_line_clause_body('X is [1,2,3,4], length(X, L).')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['L'].f, 4)
+
         clause = self.parser.parse_line_clause_body('X is [1,2,3,4], list_slice(1, 3, X, E).')
         solutions = self.rt.search(clause)
         self.assertEqual (len(solutions[0]['E'].l), 2)

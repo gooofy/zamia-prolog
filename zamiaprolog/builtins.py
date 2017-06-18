@@ -502,6 +502,25 @@ def builtin_list_nth(g, rt):
 
     return True
 
+def builtin_length(g, rt):
+
+    """ length (+List, -Len) """
+
+    rt._trace ('CALLED BUILTIN length', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 2:
+        raise PrologRuntimeError('length: 2 args (+List, -Len) expected.', g.location)
+
+    arg_list = rt.prolog_get_list     (args[0], g.env, g.location)
+    arg_len  = rt.prolog_get_variable (args[1], g.env, g.location)
+
+    g.env[arg_len] = NumberLiteral(len(arg_list.l))
+
+    return True
+
 def builtin_list_slice(g, rt):
 
     """ list_slice (+Idx1, +Idx2, +List, -Slice) """
