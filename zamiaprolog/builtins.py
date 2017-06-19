@@ -571,6 +571,17 @@ def builtin_list_append(g, rt):
 
     return True
 
+def do_list_extend(env, arg_list, arg_elements):
+
+    if not arg_list in env:
+        env[arg_list] = arg_elements
+    else:
+        l2 = deepcopy(env[arg_list].l)
+        l2.extend(arg_elements.l)
+        env[arg_list] = ListLiteral(l2)
+
+    return True
+
 def builtin_list_extend(g, rt):
 
     """ list_extend (?List, +Elements) """
@@ -589,14 +600,7 @@ def builtin_list_extend(g, rt):
     if not isinstance(arg_elements, ListLiteral):
         raise PrologRuntimeError('list_extend: list type elements expected', g.location)
 
-    if not arg_list in g.env:
-        g.env[arg_list] = arg_elements
-    else:
-        l2 = deepcopy(g.env[arg_list].l)
-        l2.extend(arg_elements.l)
-        g.env[arg_list] = ListLiteral(l2)
-
-    return True
+    return do_list_extend(g.env, arg_list, arg_elements)
 
 def builtin_list_str_join(g, rt):
 
