@@ -571,7 +571,7 @@ class PrologRuntime(object):
                         continue                
 
                 elif name == 'cut':                     # zap the competition for the current goal
-                    while len(stack)>0 and stack[len(stack)-1].head.name == g.parent.head.name:
+                    while len(stack)>0 and stack[len(stack)-1].head and stack[len(stack)-1].head.name == g.parent.head.name:
                         stack.pop()
 
                 elif name == 'fail':            # Dont succeed
