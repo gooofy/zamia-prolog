@@ -195,10 +195,10 @@ class ListLiteral(Literal):
         return self.l
 
     def __unicode__(self):
-        return unicode(self.l)
+        return u'[' + u','.join(map(lambda e: unicode(e), self.l)) + u']'
 
     def __str__(self):
-        return str(self.l)
+        return unicode(self).encode('utf8')
 
     def __repr__(self):
         return repr(self.l)
@@ -373,9 +373,7 @@ class Clause(JSONLogic):
             self.location = location
 
     def __str__(self):
-        if self.body:
-            return u'%s :- %s.' % (str(self.head), str(self.body))
-        return str(self.head) + '.'
+        return unicode(self).encode('utf8')
 
     def __unicode__(self):
         if self.body:
