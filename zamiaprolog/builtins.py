@@ -200,31 +200,33 @@ def builtin_stamp_date_time(g, rt):
     if not isinstance(args[1], Predicate) or not args[1].name == 'date' or len(args[1].args) != 7:
         raise PrologRuntimeError('stamp_date_time: arg1: date structure expected.', g.location)
 
-    try:
-        arg_Y   = rt.prolog_get_variable(args[1].args[0], g.env, g.location)
-        arg_M   = rt.prolog_get_variable(args[1].args[1], g.env, g.location)
-        arg_D   = rt.prolog_get_variable(args[1].args[2], g.env, g.location)
-        arg_H   = rt.prolog_get_variable(args[1].args[3], g.env, g.location)
-        arg_Mn  = rt.prolog_get_variable(args[1].args[4], g.env, g.location)
-        arg_S   = rt.prolog_get_variable(args[1].args[5], g.env, g.location)
-        arg_TZ  = rt.prolog_get_string(args[1].args[6], g.env, g.location)
+    # try:
+    arg_Y   = rt.prolog_get_variable(args[1].args[0], g.env, g.location)
+    arg_M   = rt.prolog_get_variable(args[1].args[1], g.env, g.location)
+    arg_D   = rt.prolog_get_variable(args[1].args[2], g.env, g.location)
+    arg_H   = rt.prolog_get_variable(args[1].args[3], g.env, g.location)
+    arg_Mn  = rt.prolog_get_variable(args[1].args[4], g.env, g.location)
+    arg_S   = rt.prolog_get_variable(args[1].args[5], g.env, g.location)
+    arg_TZ  = rt.prolog_get_string(args[1].args[6], g.env, g.location)
 
-        tz = get_localzone() if arg_TZ == 'local' else pytz.timezone(arg_TZ)
+    tz = get_localzone() if arg_TZ == 'local' else pytz.timezone(arg_TZ)
 
-        arg_TS  = rt.prolog_get_string(args[0], g.env, g.location)
+    arg_TS  = rt.prolog_get_string(args[0], g.env, g.location)
 
-        #dt = datetime.datetime.fromtimestamp(arg_TS, tz)
-        dt = dateutil.parser.parse(arg_TS).astimezone(tz)
+    #dt = datetime.datetime.fromtimestamp(arg_TS, tz)
+    dt = dateutil.parser.parse(arg_TS).astimezone(tz)
 
-        g.env[arg_Y]  = NumberLiteral(dt.year)
-        g.env[arg_M]  = NumberLiteral(dt.month)
-        g.env[arg_D]  = NumberLiteral(dt.day)
-        g.env[arg_H]  = NumberLiteral(dt.hour)
-        g.env[arg_Mn] = NumberLiteral(dt.minute)
-        g.env[arg_S]  = NumberLiteral(dt.second)
+    g.env[arg_Y]  = NumberLiteral(dt.year)
+    g.env[arg_M]  = NumberLiteral(dt.month)
+    g.env[arg_D]  = NumberLiteral(dt.day)
+    g.env[arg_H]  = NumberLiteral(dt.hour)
+    g.env[arg_Mn] = NumberLiteral(dt.minute)
+    g.env[arg_S]  = NumberLiteral(dt.second)
 
-    except PrologRuntimeError:
-        return False
+    # except PrologRuntimeError as pre:
+    #     logging.debug(pre)
+    #     import pdb; pdb.set_trace()
+    #     return False
 
     return True
 
