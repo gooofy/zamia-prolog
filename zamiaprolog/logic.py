@@ -46,10 +46,10 @@ class SourceLocation(JSONLogic):
             self.col  = col
 
     def __str__(self):
-        return '%s: line=%d, col=%d' % (self.fn, self.line, self.col)
+        return unicode(self).encode('utf8')
 
     def __unicode__(self):
-        return u'%s: line=%d, col=%d' % (self.fn, self.line, self.col)
+        return u'%s: line=%s, col=%s' % (self.fn, unicode(self.line), unicode(self.col))
 
     def __repr__(self):
         return 'SourceLocation(fn=%s, line=%d, col=%d)' % (self.fn, self.line, self.col)
