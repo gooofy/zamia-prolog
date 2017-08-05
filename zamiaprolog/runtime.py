@@ -397,21 +397,25 @@ class PrologRuntime(object):
         elif isinstance (dest, Literal):
             return False
 
-        elif src.name != dest.name:
-            return False
-        elif len(src.args) != len(dest.args): 
-            return False
         else:
-            for i in range(len(src.args)):
-                if not self._unify(src.args[i], srcEnv, dest.args[i], destEnv, location, overwrite_vars):
-                    return False
+            if not isinstance(src, Predicate) or not isinstance(dest, Predicate):
+                raise PrologRuntimeError (u'_unify: expected src/dest, got "%s" vs "%s"' % (repr(src), repr(dest)))
 
-            # always unify implicit overlay variable:
+            if src.name != dest.name:
+                return False
+            elif len(src.args) != len(dest.args): 
+                return False
+            else:
+                for i in range(len(src.args)):
+                    if not self._unify(src.args[i], srcEnv, dest.args[i], destEnv, location, overwrite_vars):
+                        return False
 
-            if ASSERT_OVERLAY_VAR_NAME in srcEnv:
-                destEnv[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
+                # always unify implicit overlay variable:
 
-            return True
+                if ASSERT_OVERLAY_VAR_NAME in srcEnv:
+                    destEnv[ASSERT_OVERLAY_VAR_NAME] = srcEnv[ASSERT_OVERLAY_VAR_NAME]
+
+                return True
 
     def _trace (self, label, goal):
 
