@@ -160,6 +160,7 @@ class PrologRuntime(object):
         self.register_builtin('trace',           builtin_trace)          # trace (+OnOff)
         self.register_builtin('true',            builtin_true)           # true
         self.register_builtin('ignore',          builtin_ignore)         # ignore (+P)
+        self.register_builtin('nonvar',          builtin_nonvar)         # nonvar (+Term)
 
         # lists
 

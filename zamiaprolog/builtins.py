@@ -440,7 +440,7 @@ def builtin_true(g, rt):
  
 def builtin_ignore(g, rt):
 
-    """ ignore (+Template, +Goal, -Set) """
+    """ ignore (+P) """
 
     rt._trace ('CALLED BUILTIN ignore', g)
 
@@ -461,6 +461,22 @@ def builtin_ignore(g, rt):
         return solutions
 
     return True
+
+def builtin_nonvar(g, rt):
+
+    """ nonvar (+Term) """
+
+    rt._trace ('CALLED BUILTIN nonvar', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('nonvar: 1 arg (+Term) expected.', g.location)
+
+    arg_term = rt.prolog_eval(args[0], g.env, g.location)
+
+    return not isinstance (arg_term, Variable)
 
 def builtin_list_contains(g, rt):
 

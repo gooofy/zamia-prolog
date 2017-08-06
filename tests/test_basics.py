@@ -266,6 +266,20 @@ class TestZamiaProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 1)
 
+    def test_nonvar(self):
+
+        clause = self.parser.parse_line_clause_body(u'S is "a", nonvar(S)')
+        logging.debug(u'clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+
+        clause = self.parser.parse_line_clause_body(u'nonvar(S)')
+        logging.debug(u'clause: %s' % clause)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 0)
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
