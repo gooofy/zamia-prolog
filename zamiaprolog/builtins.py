@@ -27,9 +27,9 @@ import dateutil.parser
 import time
 import logging
 import pytz # $ pip install pytz
+import copy
 
 from tzlocal import get_localzone # $ pip install tzlocal
-from copy    import deepcopy
 
 import model
 
@@ -299,7 +299,7 @@ def builtin_str_append(g, rt):
     if not arg_str in g.env:
         g.env[arg_str] = StringLiteral(arg_append.s)
     else:
-        s2 = deepcopy(g.env[arg_str].s)
+        s2 = copy.deepcopy(g.env[arg_str].s)
         s2 += arg_append.s
         g.env[arg_str] = StringLiteral(s2)
 
@@ -583,7 +583,7 @@ def builtin_list_append(g, rt):
     if not arg_list in g.env:
         g.env[arg_list] = ListLiteral([arg_element])
     else:
-        l2 = deepcopy(g.env[arg_list].l)
+        l2 = copy.deepcopy(g.env[arg_list].l)
         l2.append(arg_element)
         g.env[arg_list] = ListLiteral(l2)
 
@@ -594,7 +594,7 @@ def do_list_extend(env, arg_list, arg_elements):
     if not arg_list in env:
         env[arg_list] = arg_elements
     else:
-        l2 = deepcopy(env[arg_list].l)
+        l2 = copy.deepcopy(env[arg_list].l)
         l2.extend(arg_elements.l)
         env[arg_list] = ListLiteral(l2)
 
@@ -664,7 +664,7 @@ def builtin_dict_put(g, rt):
     if not arg_dict in g.env:
         g.env[arg_dict] = DictLiteral({arg_key: arg_val})
     else:
-        d2 = deepcopy(g.env[arg_dict].d)
+        d2 = copy.deepcopy(g.env[arg_dict].d)
         d2[arg_key] = arg_val
         g.env[arg_dict] = DictLiteral(d2)
 
@@ -720,7 +720,7 @@ def builtin_set_add(g, rt):
     if not arg_set in g.env:
         g.env[arg_set] = SetLiteral(set([arg_val]))
     else:
-        s2 = deepcopy(g.env[arg_set].s)
+        s2 = copy.deepcopy(g.env[arg_set].s)
         s2.add(arg_val)
         g.env[arg_set] = SetLiteral(s2)
 
@@ -791,9 +791,12 @@ def do_assertz(env, clause, res={}):
         ovl = ovl.clone()
         
     ovl.assertz(clause)
-    res[ASSERT_OVERLAY_VAR_NAME] = ovl
+
+    # important: do not modify our (default!) argument
+    res2 = copy.copy(res)
+    res2[ASSERT_OVERLAY_VAR_NAME] = ovl
         
-    return res
+    return res2
 
 def builtin_assertz(g, rt):
 
