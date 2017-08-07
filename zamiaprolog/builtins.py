@@ -1040,3 +1040,28 @@ def builtin_list_len(args, env, rt, location):
     arg_list = rt.prolog_get_list (args[0], env, location)
     return NumberLiteral(len(arg_list.l))
 
+def builtin_list_slice_fn(args, env, rt, location):
+
+    rt._trace_fn ('CALLED FUNCTION list_slice', env)
+
+    if len(args) != 3:
+        raise PrologRuntimeError('list_slice: 3 args (+Idx1, +Idx2, +List) expected.', location)
+
+    arg_idx1  = rt.prolog_get_int  (args[0], env, location)
+    arg_idx2  = rt.prolog_get_int  (args[1], env, location)
+    arg_list  = rt.prolog_get_list (args[2], env, location)
+
+    return ListLiteral(arg_list.l[arg_idx1:arg_idx2])
+
+def builtin_list_join_fn(args, env, rt, location):
+
+    rt._trace_fn ('CALLED FUNCTION list_join', env)
+
+    if len(args) != 2:
+        raise PrologRuntimeError('list_join: 2 args (+Glue, +List) expected.', location)
+
+    arg_glue  = rt.prolog_get_string (args[0], env, location)
+    arg_list  = rt.prolog_get_list   (args[1], env, location)
+
+    return StringLiteral(arg_glue.join(map(lambda a: a.s if isinstance(a, StringLiteral) else unicode(a), arg_list.l)))
+

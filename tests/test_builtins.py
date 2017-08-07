@@ -101,12 +101,22 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['E'].l[0].f, 2.0)
         self.assertEqual (solutions[0]['E'].l[1].f, 3.0)
 
+        clause = self.parser.parse_line_clause_body('X is [1,2,3,4], E is list_slice(1, 3, X).')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions[0]['E'].l), 2)
+        self.assertEqual (solutions[0]['E'].l[0].f, 2.0)
+        self.assertEqual (solutions[0]['E'].l[1].f, 3.0)
+
         clause = self.parser.parse_line_clause_body('X is [1,2,3,4], list_append(X, 5).')
         solutions = self.rt.search(clause)
         self.assertEqual (len(solutions[0]['X'].l), 5)
         self.assertEqual (solutions[0]['X'].l[4].f, 5.0)
 
         clause = self.parser.parse_line_clause_body('X is ["1","2","3","4"], list_str_join("@", X, Y).')
+        solutions = self.rt.search(clause)
+        self.assertEqual (solutions[0]['Y'].s, "1@2@3@4")
+
+        clause = self.parser.parse_line_clause_body('X is ["1","2","3","4"], Y is list_join("@", X).')
         solutions = self.rt.search(clause)
         self.assertEqual (solutions[0]['Y'].s, "1@2@3@4")
 

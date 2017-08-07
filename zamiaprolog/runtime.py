@@ -205,6 +205,8 @@ class PrologRuntime(object):
         self.register_builtin_function ('list_sum',   builtin_list_sum)
         self.register_builtin_function ('list_avg',   builtin_list_avg)
         self.register_builtin_function ('list_len',   builtin_list_len)
+        self.register_builtin_function ('list_slice', builtin_list_slice_fn)
+        self.register_builtin_function ('list_join',  builtin_list_join_fn)
 
     def prolog_eval (self, term, env, location):      # eval all variables within a term to constants
 
