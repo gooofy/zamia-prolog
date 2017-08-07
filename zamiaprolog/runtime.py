@@ -59,7 +59,7 @@ binary_operators = {'+'  : prolog_binary_add,
                     'mod': prolog_binary_mod,
                     }
 
-builtin_specials = set(['is', 'cut', 'fail', 'not', 'or', 'and'])
+builtin_specials = set(['cut', 'fail', 'not', 'or', 'and'])
 
 class PrologGoal:
 
@@ -161,6 +161,7 @@ class PrologRuntime(object):
         self.register_builtin('true',            builtin_true)           # true
         self.register_builtin('ignore',          builtin_ignore)         # ignore (+P)
         self.register_builtin('nonvar',          builtin_nonvar)         # nonvar (+Term)
+        self.register_builtin('is',              builtin_is)             # is (?Ques, +Ans)
 
         # lists
 
@@ -562,20 +563,8 @@ class PrologRuntime(object):
             #     import pdb; pdb.set_trace()
 
             if name in builtin_specials:
-                if name == 'is' :
 
-                    ques = self.prolog_eval(pred.args[0], g.env, g.location)
-                    ans  = self.prolog_eval(pred.args[1], g.env, g.location)
-
-                    if isinstance(ques, Variable):
-                        if ques.name != u'_':
-                            g.env[ques.name] = ans  # Set variable
-
-                    elif ques != ans :                  # Mismatch, fail
-                        self._finish_goal (g, False, stack, solutions)
-                        continue                
-
-                elif name == 'cut':                     # zap the competition for the current goal
+                if name == 'cut':                     # zap the competition for the current goal
                     while len(stack)>0 and stack[len(stack)-1].head and stack[len(stack)-1].head.name == g.parent.head.name:
                         stack.pop()
 
