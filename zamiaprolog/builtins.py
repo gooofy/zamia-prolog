@@ -497,6 +497,7 @@ def builtin_nonvar(g, rt):
         raise PrologRuntimeError('nonvar: 1 arg (+Term) expected.', g.location)
 
     arg_term = rt.prolog_eval(args[0], g.env, g.location)
+    #import pdb; pdb.set_trace()
 
     return not isinstance (arg_term, Variable)
 
@@ -873,9 +874,11 @@ def do_retractall(env, p, res={}):
         ovl = ovl.clone()
         
     ovl.retractall(p)
-    res[ASSERT_OVERLAY_VAR_NAME] = ovl
+    # important: do not modify our (default!) argument
+    res2 = copy.copy(res)
+    res2[ASSERT_OVERLAY_VAR_NAME] = ovl
         
-    return res
+    return res2
 
 def builtin_retractall(g, rt):
 
