@@ -275,15 +275,15 @@ class TestBuiltins (unittest.TestCase):
 
 
     # @unittest.skip("temporarily disabled")
-    def test_retractall(self):
+    def test_retract(self):
 
-        clause = self.parser.parse_line_clause_body('I is ias1, assertz(frame (I, a, x)), retractall(frame (I, _, _)), assertz(frame (I, a, y)), frame(ias1, a, X)')
+        clause = self.parser.parse_line_clause_body('I is ias1, assertz(frame (I, a, x)), retract(frame (I, _, _)), assertz(frame (I, a, y)), frame(ias1, a, X)')
         solutions = self.rt.search(clause)
         logging.debug(repr(solutions))
         self.assertEqual (len(solutions), 1)
         self.assertEqual (solutions[0]['X'].name, 'y')
 
-    def test_retractall_db(self):
+    def test_retract_db(self):
 
         clause = self.parser.parse_line_clause_body('I is ias1, assertz(frame (I, a, x))')
         solutions = self.rt.search(clause)
@@ -300,11 +300,11 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(s2s), 1)
         self.assertEqual (s2s[0]['X'].name, 'x')
         
-        clause = self.parser.parse_line_clause_body('retractall(frame (ias1, _, _)), frame(ias1, a, X)')
+        clause = self.parser.parse_line_clause_body('retract(frame (ias1, _, _)), frame(ias1, a, X)')
         s2s = self.rt.search(clause)
         self.assertEqual (len(s2s), 0)
 
-        clause = self.parser.parse_line_clause_body('retractall(frame (ias1, _, _))')
+        clause = self.parser.parse_line_clause_body('retract(frame (ias1, _, _))')
         solutions = self.rt.search(clause)
 
         self.rt.apply_overlay(UNITTEST_MODULE, solutions[0])

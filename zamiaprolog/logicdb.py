@@ -127,7 +127,7 @@ class LogicDBOverlay(object):
 
         for name in self.d_retracted:
             for c in self.d_retracted[name]:
-                clone.retractall(c)
+                clone.retract(c)
 
         for name in self.d_assertz:
             for c in self.d_assertz[name]:
@@ -146,7 +146,7 @@ class LogicDBOverlay(object):
 
     def _match_p (self, p1, p2):
 
-        """ extremely simplified variant of full-blown unification - just enough to get basic retractall/1 working """
+        """ extremely simplified variant of full-blown unification - just enough to get basic retract/1 working """
 
         if isinstance (p1, Variable):
             return True
@@ -171,7 +171,7 @@ class LogicDBOverlay(object):
         return True
 
 
-    def retractall (self, p):
+    def retract (self, p):
         name = p.name
 
         if name in self.d_assertz:

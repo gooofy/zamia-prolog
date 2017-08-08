@@ -862,7 +862,7 @@ def do_assertz_predicate(env, name, args, res={}, location=None):
 
     return do_assertz (env, Clause(head=Predicate(name, mapped_args), location=location), res=res)
 
-def do_retractall(env, p, res={}):
+def do_retract(env, p, res={}):
 
     ovl = res.get(ASSERT_OVERLAY_VAR_NAME)
     if ovl is None:
@@ -873,28 +873,28 @@ def do_retractall(env, p, res={}):
     else:
         ovl = ovl.clone()
         
-    ovl.retractall(p)
+    ovl.retract(p)
     # important: do not modify our (default!) argument
     res2 = copy.copy(res)
     res2[ASSERT_OVERLAY_VAR_NAME] = ovl
         
     return res2
 
-def builtin_retractall(g, rt):
+def builtin_retract(g, rt):
 
-    """ retractall (+P) """
+    """ retract (+P) """
 
-    rt._trace ('CALLED BUILTIN retractall', g)
+    rt._trace ('CALLED BUILTIN retract', g)
 
     pred = g.terms[g.inx]
 
     args = pred.args
     if len(args) != 1:
-        raise PrologRuntimeError('retractall: 1 arg (+P) expected.', g.location)
+        raise PrologRuntimeError('retract: 1 arg (+P) expected.', g.location)
 
     arg_p  = rt.prolog_get_predicate (args[0], g.env, g.location)
 
-    return [do_retractall(g.env, arg_p, res={})]
+    return [do_retract(g.env, arg_p, res={})]
 
 
 def builtin_setz(g, rt):
@@ -914,7 +914,7 @@ def builtin_setz(g, rt):
     arg_p  = rt.prolog_get_predicate (args[0], g.env, g.location)
     arg_v  = rt.prolog_eval          (args[1], g.env, g.location)
 
-    env = do_retractall(g.env, arg_p, res={})
+    env = do_retract(g.env, arg_p, res={})
     
     pa = []
     for arg in arg_p.args:
