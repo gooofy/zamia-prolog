@@ -321,7 +321,7 @@ class PrologRuntime(object):
         t = self.prolog_eval (term, env, location)
 
         if not isinstance(t, ListLiteral):
-            raise PrologRuntimeError('List expected, %s found instead.' % term.__class__, location)
+            raise PrologRuntimeError('List expected, %s (%s) found instead.' % (unicode(term), term.__class__), location)
         return t
 
     def prolog_get_dict(self, term, env, location):
