@@ -325,10 +325,12 @@ class Predicate(JSONLogic):
         if not self.args:
             return self.name
 
-        if self.name == 'or':
-            return u'; '.join(map(unicode, self.args))
-        elif self.name == 'and':
-            return u', '.join(map(unicode, self.args))
+        # if self.name == 'and':
+        #     return u', '.join(map(unicode, self.args))
+        # if self.name == 'or':
+        #     return u'; '.join(map(unicode, self.args))
+        # elif self.name == 'and':
+        #     return u', '.join(map(unicode, self.args))
 
         return u'%s(%s)' % (self.name, u', '.join(map(unicode, self.args)))
         #return '(' + self.name + ' ' + ' '.join( [str(arg) for arg in self.args]) + ')'

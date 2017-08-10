@@ -116,9 +116,11 @@ class TestZamiaProlog (unittest.TestCase):
 
         line = u'time_span(c, X, Y) :- p1(c), p2(X, Y); p3(c); p4.'
 
+        line2 = u'time_span(c, X, Y) :- or(and(p1(c), p2(X, Y)), p3(c), p4).'
+
         tree = self.parser.parse_line_clauses(line)
         logging.debug (unicode(tree[0].body))
-        self.assertEqual (unicode(tree[0]), line)
+        self.assertEqual (unicode(tree[0]), line2)
 
 
     # @unittest.skip("temporarily disabled")
