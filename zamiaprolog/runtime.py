@@ -566,9 +566,15 @@ class PrologRuntime(object):
 
             if name in builtin_specials:
 
-                if name == 'cut':                     # zap the competition for the current goal
+                if name == 'cut':                   # zap the competition for the current goal
+
+                    # logging.debug ("CUT: stack before %s" % repr(stack))
+                    # import pdb; pdb.set_trace()
+
                     while len(stack)>0 and stack[len(stack)-1].head and stack[len(stack)-1].head.name == g.parent.head.name:
                         stack.pop()
+
+                    # logging.debug ("CUT: stack after %s" % repr(stack))
 
                 elif name == 'fail':            # Dont succeed
                     self._finish_goal (g, False, stack, solutions)
@@ -583,9 +589,12 @@ class PrologRuntime(object):
 
                     # logging.debug ('   or clause detected.')
 
+                    # import pdb; pdb.set_trace()
                     for subgoal in reversed(pred.args):
+                        or_subg = PrologGoal(pred, [subgoal], g, env=copy.copy(g.env), location=g.location)
+                        self._trace ('  OR', or_subg)
                         # logging.debug ('    subgoal: %s' % subgoal)
-                        stack.append(PrologGoal(pred, [subgoal], g, env=copy.copy(g.env), location=g.location))
+                        stack.append(or_subg)
 
                     continue
 
