@@ -121,6 +121,16 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['Y'].s, "1@2@3@4")
 
     # @unittest.skip("temporarily disabled")
+    def test_list_findall(self):
+
+        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE, self.db)
+
+        clause = self.parser.parse_line_clause_body('list_findall(X, woman(X), L)')
+        solutions = self.rt.search(clause)
+        self.assertEqual (len(solutions[0]), 1)
+        self.assertEqual (len(solutions[0]['L'].l), 3)
+
+    # @unittest.skip("temporarily disabled")
     def test_strings(self):
 
         clause = self.parser.parse_line_clause_body('X is \'bar\', S is format_str(\'test %d %s foo\', 42, X)')

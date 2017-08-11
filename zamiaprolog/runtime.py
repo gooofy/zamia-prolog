@@ -172,6 +172,7 @@ class PrologRuntime(object):
         self.register_builtin('list_append',     builtin_list_append)    # list_append (?List, +Element)
         self.register_builtin('list_extend',     builtin_list_extend)    # list_extend (?List, +Element)
         self.register_builtin('list_str_join',   builtin_list_str_join)  # list_str_join (+Glue, +List, -Str)
+        self.register_builtin('list_findall',    builtin_list_findall)   # list_findall (+Template, +Goal, -List)
 
         # dicts
 

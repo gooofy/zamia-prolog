@@ -668,6 +668,35 @@ def builtin_list_str_join(g, rt):
 
     return True
 
+def builtin_list_findall(g, rt):
+
+    """ list_findall (+Template, +Goal, -List) """
+
+    rt._trace ('CALLED BUILTIN list_findall', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 3:
+        raise PrologRuntimeError('list_findall: 3 args (+Template, +Goal, -List) expected.', g.location)
+
+    arg_tmpl   = rt.prolog_get_variable (args[0], g.env, g.location)
+    arg_goal   = args[1]
+    arg_list   = rt.prolog_get_variable (args[2], g.env, g.location)
+
+    if not isinstance (arg_goal, Predicate):
+        raise PrologRuntimeError('list_findall: predicate goal expected, %s found instead.' % repr(arg_goal), g.location)
+        
+    solutions = rt.search_predicate(arg_goal.name, arg_goal.args, env=g.env, location=g.location, err_on_missing=False)
+    
+    rs = []
+    for s in solutions:
+        rs.append(s[arg_tmpl])
+        
+    g.env[arg_list] = ListLiteral(rs)
+
+    return True
+
 def builtin_dict_put(g, rt):
 
     """ dict_put (?Dict, +Key, +Value) """
