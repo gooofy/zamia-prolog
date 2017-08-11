@@ -686,7 +686,7 @@ class PrologRuntime(object):
             if not isinstance(arg, basestring):
                 mapped_args.append(arg)
                 continue
-            if arg[0].isupper():
+            if arg[0].isupper() or arg[0].startswith('_'):
                 mapped_args.append(Variable(arg))
             else:
                 mapped_args.append(Predicate(arg))
