@@ -298,7 +298,7 @@ class PrologRuntime(object):
         t = self.prolog_eval (term, env, location)
 
         if not isinstance (t, StringLiteral):
-            raise PrologRuntimeError('String expected, %s found instead.' % t.__class__, location)
+            raise PrologRuntimeError('String expected, %s (%s) found instead.' % (unicode(t), t.__class__), location)
         return t.s
 
     def prolog_get_literal(self, term, env, location):
