@@ -96,6 +96,9 @@ class LogicDB(object):
 
     def lookup (self, name, overlay=None):
 
+        # if name == 'lang':
+        #     import pdb; pdb.set_trace()
+
         # DB caching
 
         if name in self.cache:
