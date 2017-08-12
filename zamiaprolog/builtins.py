@@ -477,7 +477,7 @@ def builtin_ignore(g, rt):
     if not isinstance (arg_p, Predicate):
         raise PrologRuntimeError('ignore: predicate expected, %s found instead.' % repr(arg_p), g.location)
         
-    solutions = rt.search_predicate(arg_p.name, arg_p.args, env=g.env, location=g.location, err_on_missing=False)
+    solutions = rt.search_predicate(arg_p.name, arg_p.args, env=g.env, location=g.location)
     
     if len(solutions)>0:
         return solutions
@@ -687,7 +687,7 @@ def builtin_list_findall(g, rt):
     if not isinstance (arg_goal, Predicate):
         raise PrologRuntimeError('list_findall: predicate goal expected, %s found instead.' % repr(arg_goal), g.location)
         
-    solutions = rt.search_predicate(arg_goal.name, arg_goal.args, env=g.env, location=g.location, err_on_missing=False)
+    solutions = rt.search_predicate(arg_goal.name, arg_goal.args, env=g.env, location=g.location)
     
     rs = []
     for s in solutions:
@@ -819,7 +819,7 @@ def builtin_set_findall(g, rt):
     if not isinstance (arg_goal, Predicate):
         raise PrologRuntimeError('set_findall: predicate goal expected, %s found instead.' % repr(arg_goal), g.location)
         
-    solutions = rt.search_predicate(arg_goal.name, arg_goal.args, env=g.env, location=g.location, err_on_missing=False)
+    solutions = rt.search_predicate(arg_goal.name, arg_goal.args, env=g.env, location=g.location)
     
     rs = set()
     for s in solutions:

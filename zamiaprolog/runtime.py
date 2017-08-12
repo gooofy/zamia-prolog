@@ -531,7 +531,7 @@ class PrologRuntime(object):
 
         solution[ASSERT_OVERLAY_VAR_NAME].do_apply(module, self.db, commit=True)
 
-    def search (self, clause, env={}, err_on_missing=False):
+    def search (self, clause, env={}):
 
         if clause.body is None:
             return [{}]
@@ -633,16 +633,20 @@ class PrologRuntime(object):
 
             # Not special. look up in rule database
 
-            clauses = self.db.lookup(pred.name, g.env.get(ASSERT_OVERLAY_VAR_NAME))
+            static_filter = {}
+            for i, a in enumerate(pred.args):
+                ca = self.prolog_eval(a, g.env, clause.location)
+                if isinstance(ca, Predicate) and len(ca.args)==0:
+                    static_filter[i] = ca.name
+            # if len(static_filter)>0:
+            # if pred.name == 'not_dog':
+            #     import pdb; pdb.set_trace()
+            clauses = self.db.lookup(pred.name, len(pred.args), overlay=g.env.get(ASSERT_OVERLAY_VAR_NAME), sf=static_filter)
 
-            if len(clauses) == 0: 
-                if err_on_missing:
-                    raise PrologRuntimeError ('Failed to find predicate "%s" !' % pred.name, g.location)
-                else:
-                    # simply fail
-                    self._finish_goal (g, False, stack, solutions)
-                    continue
-
+            # if len(clauses) == 0: 
+            #     # fail
+            #     self._finish_goal (g, False, stack, solutions)
+            #     continue
 
             success = False
 
@@ -673,7 +677,7 @@ class PrologRuntime(object):
 
         return solutions
 
-    def search_predicate(self, name, args, env={}, location=None, err_on_missing=True):
+    def search_predicate(self, name, args, env={}, location=None):
 
         """ convenience function: build Clause/Predicate structure, translate python strings in args
             into Predicates/Variables by Prolog conventions (lowercase: predicate, uppercase: variable) """
@@ -691,7 +695,7 @@ class PrologRuntime(object):
             else:
                 mapped_args.append(Predicate(arg))
 
-        solutions = self.search(Clause(body=Predicate(name, mapped_args), location=location), env=env, err_on_missing=err_on_missing)
+        solutions = self.search(Clause(body=Predicate(name, mapped_args), location=location), env=env)
 
         return solutions
 

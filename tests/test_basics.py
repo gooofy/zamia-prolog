@@ -87,11 +87,11 @@ class TestZamiaProlog (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_kb1(self):
 
-        self.assertEqual (len(self.db.lookup('party')), 0)
+        self.assertEqual (len(self.db.lookup('party', 0)), 0)
 
         self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE, self.db)
 
-        self.assertEqual (len(self.db.lookup('party')), 1)
+        self.assertEqual (len(self.db.lookup('party', 0)), 1)
 
         clause = self.parser.parse_line_clause_body('woman(X)')
         logging.debug('clause: %s' % clause)

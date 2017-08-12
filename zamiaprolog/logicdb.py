@@ -94,7 +94,8 @@ class LogicDB(object):
                                      doc    = doc)
         self.session.add(ormd)
 
-    def lookup (self, name, overlay=None):
+    # use arity=-1 to disable filtering
+    def lookup (self, name, arity, overlay=None, sf=None):
 
         # if name == 'lang':
         #     import pdb; pdb.set_trace()
@@ -116,7 +117,32 @@ class LogicDB(object):
         if overlay:
             res = overlay.do_filter(name, res)
 
-        return res
+        if arity<0:
+            return res
+
+        res2 = []
+        for clause in res:
+    
+            if len(clause.head.args) != arity:
+                continue
+
+            match = True
+            if sf:
+                for i in sf:
+                    ca = sf[i]
+                    a  = clause.head.args[i]
+                    
+                    if not isinstance(a, Predicate):
+                        continue
+                    if (a.name != ca) or (len(a.args) !=0):
+                        # logging.info('no match: %s vs %s %s' % (repr(ca), repr(a), unicode(clause)))
+                        match=False
+                        break
+            if not match:
+                continue
+            res2.append(clause)
+
+        return res2
 
 class LogicDBOverlay(object):
 
