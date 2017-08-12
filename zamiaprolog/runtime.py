@@ -559,6 +559,8 @@ class PrologRuntime(object):
             # No. more to do with this goal.
             pred = g.terms[g.inx]                   # what we want to solve
 
+            if not isinstance(pred, Predicate):
+                raise PrologRuntimeError (u'search: encountered "%s" (%s) when I expected a predicate!' % (unicode(pred), pred.__class__), g.location )
             name = pred.name
                 
             # FIXME: debug only
