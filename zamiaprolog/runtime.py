@@ -162,6 +162,7 @@ class PrologRuntime(object):
         self.register_builtin('ignore',          builtin_ignore)         # ignore (+P)
         self.register_builtin('nonvar',          builtin_nonvar)         # nonvar (+Term)
         self.register_builtin('is',              builtin_is)             # is (?Ques, +Ans)
+        self.register_builtin('set',             builtin_set)            # set (?Var, +Val)
 
         # lists
 
@@ -191,7 +192,6 @@ class PrologRuntime(object):
         self.register_builtin('retract',         builtin_retract)        # retract (+P)
         self.register_builtin('setz',            builtin_setz)           # setz (+P, +V)
         self.register_builtin('gensym',          builtin_gensym)         # gensym (+Root, -Unique)
-
 
         #
         # builtin functions

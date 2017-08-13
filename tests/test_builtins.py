@@ -385,6 +385,15 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions), 1)
         self.assertEqual (len(solutions[0]['Y'].l), 2)
 
+    def test_set(self):
+
+        clause = self.parser.parse_line_clause_body('set(X, 23), set(X, 42), set(Y, 23)')
+        solutions = self.rt.search(clause)
+        logging.debug(repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (solutions[0]['X'].f, 42)
+        self.assertEqual (solutions[0]['Y'].f, 23)
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
