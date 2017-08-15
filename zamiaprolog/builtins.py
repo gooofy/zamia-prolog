@@ -501,6 +501,23 @@ def builtin_ignore(g, rt):
 
     return True
 
+def builtin_var(g, rt):
+
+    """ var (+Term) """
+
+    rt._trace ('CALLED BUILTIN var', g)
+
+    pred = g.terms[g.inx]
+
+    args = pred.args
+    if len(args) != 1:
+        raise PrologRuntimeError('var: 1 arg (+Term) expected.', g.location)
+
+    arg_term = rt.prolog_eval(args[0], g.env, g.location)
+    #import pdb; pdb.set_trace()
+
+    return isinstance (arg_term, Variable)
+
 def builtin_nonvar(g, rt):
 
     """ nonvar (+Term) """

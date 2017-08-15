@@ -160,6 +160,7 @@ class PrologRuntime(object):
         self.register_builtin('trace',           builtin_trace)          # trace (+OnOff)
         self.register_builtin('true',            builtin_true)           # true
         self.register_builtin('ignore',          builtin_ignore)         # ignore (+P)
+        self.register_builtin('var',             builtin_var)            # var (+Term)
         self.register_builtin('nonvar',          builtin_nonvar)         # nonvar (+Term)
         self.register_builtin('is',              builtin_is)             # is (?Ques, +Ans)
         self.register_builtin('set',             builtin_set)            # set (?Var, +Val)
