@@ -9,11 +9,22 @@ Zamia-Prolog) or at runtime.
 
 The Prolog core is based on http://openbookproject.net/py4fun/prolog/prolog3.html by Chris Meyers.
 
-I do have vague plans to turn this into a proper WAM based Prolog implementation at some point, but right now Chris'
-interpreted approach is more than good enough for my needs. Also please note that this is a Prolog dialect that probably
-never will be compliant to any Prolog standards. The goal here is to have a Prolog-style reasoning engine that can be
-embedded in applications, customized for domain-specific tasks - not to implement a pure, standards-compliant,
-standalone Prolog System meant for application development.
+While performance is definitely important, right now Chris' interpreted approach is more than good enough for my needs. 
+
+My main focus here is embedding and language features - at the time of this writing I am experimenting with
+incorporating some imperative concepts into Zamia-Prolog, such as re-assignable variables and if/then/else constructs.  
+So please note that this is a Prolog dialect that probably never will be compliant to any Prolog standards. Instead it will
+most likely drift further away from standard prolog and may evolve into my own logic-based language.
+
+Features
+========
+
+* pure Python implementation
+* easy to embed in Python applications
+* easy to extend with custom builtins for domain specific tasks
+* re-assignable variables with full backtracking support
+* assertz/retract with full backtracking support (using database overlays)
+* imperative language constructs such as if/then/else
 
 Requirements
 ============
