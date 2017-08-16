@@ -691,10 +691,11 @@ class PrologParser(object):
             if self.cur_sym == SYM_ELSE:
                 self.next_sym()
                 e  = self.subgoals()
-                nc = Predicate ('not', [c])
-                e  = Predicate ('and', [nc, e])
             else:
                 e = Predicate ('true')
+
+            nc = Predicate ('not', [c])
+            e  = Predicate ('and', [nc, e])
 
             if self.cur_sym != SYM_ENDIF:
                 self.report_error ("subgoal: endif expected.")
