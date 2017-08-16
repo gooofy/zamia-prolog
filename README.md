@@ -246,6 +246,51 @@ _custom_directive has been called. clause: custom_directive(abc, 42.0, "foo"). u
 []
 ```
 
+Re-Assignable Variables 
+-----------------------
+
+Variables can be re-assigned using the built-in special `set` (`:=`):
+
+```prolog
+Z := 23, Z := 42
+```
+this comes with full backtracking support.
+
+Pseudo-Variables/-Predicates
+----------------------------
+
+This is an extension to standard prolog syntax found in Zamia-Prolog to make "variable" setting and access
+easier:
+```
+C:user        -> user (C, X)
+C:user:name   -> user (C, X), name (X, Y)
+self:name     -> name (self, X)
+self:label|de -> label (self, de, X)
+```
+this works for evaluation as well as setting/asserting (left-hand and right-hand side of expressions).
+
+Example:
+```prolog
+assertz(foo(bar, 23)), bar:foo := 42, Z := bar:foo
+```
+will result in `Z == 42` and `foo(bar, 42)` asserted in the database.
+
+if/then/else/endif
+------------------
+
+```prolog
+if foo(bar) then
+   do1, do2
+else
+   do2, do3
+endif
+
+```
+is equivalent to
+```prolog
+or ( and (foo(bar), do1, do2), and (not(foo(bar)), do2, do3) )
+```
+
 License
 =======
 
