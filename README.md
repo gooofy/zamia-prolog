@@ -25,6 +25,7 @@ Features
 * re-assignable variables with full backtracking support
 * assertz/retract with full backtracking support (using database overlays)
 * imperative language constructs such as if/then/else
+* pseudo-variables/-predicates that make DB assertz/retractz easier to code
 
 Requirements
 ============
