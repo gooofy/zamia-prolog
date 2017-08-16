@@ -387,17 +387,18 @@ class TestBuiltins (unittest.TestCase):
 
     def test_set(self):
 
-        clause = self.parser.parse_line_clause_body('set(X, 23), set(X, 42), set(Y, 23)')
+        clause = self.parser.parse_line_clause_body('set(X, 23), set(X, 42), set(Y, 23), Z := Y * 2')
         solutions = self.rt.search(clause)
         logging.debug(repr(solutions))
         self.assertEqual (len(solutions), 1)
         self.assertEqual (solutions[0]['X'].f, 42)
         self.assertEqual (solutions[0]['Y'].f, 23)
+        self.assertEqual (solutions[0]['Z'].f, 46)
 
     def test_set_pseudo(self):
 
-        clause = self.parser.parse_line_clause_body('assertz(foo(bar, 23)), set(bar:foo, 42), foo(bar, X)')
-        self.rt.set_trace(True)
+        clause = self.parser.parse_line_clause_body('assertz(foo(bar, 23)), set(bar:foo, 42), foo(bar, X), Z := bar:foo')
+        # self.rt.set_trace(True)
         solutions = self.rt.search(clause)
         logging.debug(repr(solutions))
         self.assertEqual (len(solutions), 1)
