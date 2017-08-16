@@ -33,7 +33,9 @@
 #
 # subgoals      ::= subgoal { ',' subgoal }
 #
-# subgoal       ::= ( term | conditional )
+# subgoal       ::= ( term | conditional | inline )
+#
+# inline        ::= 'inline' relation
 #
 # conditional   ::= 'if' term 'then' subgoals [ 'else' subgoals ] 'endif'
 #
@@ -119,6 +121,7 @@ SYM_IF         = 40   # if
 SYM_THEN       = 41   # then
 SYM_ELSE       = 42   # else
 SYM_ENDIF      = 43   # endif
+SYM_INLINE     = 44   # inline
 
 REL_OPS   = set([SYM_EQUAL,
                  SYM_NEQUAL,
@@ -325,6 +328,8 @@ class PrologParser(object):
                 self.cur_sym = SYM_DIV
             elif self.cur_str == 'mod':
                 self.cur_sym = SYM_MOD
+            elif self.cur_str == 'inline':
+                self.cur_sym = SYM_INLINE
 
         elif self.cur_c == u':':
             self.next_c()
@@ -646,6 +651,27 @@ class PrologParser(object):
 
         return Predicate (name, args)
 
+    def _apply_bindings (self, a, bindings):
+        """ static application of bindings when inlining predicates """
+
+        if isinstance (a, Predicate):
+
+            aargs = []
+            for b in a.args:
+                aargs.append(self._apply_bindings (b, bindings))
+
+            return Predicate (a.name, aargs)
+
+        if isinstance (a, Variable):
+            if not a.name in bindings:
+                return a
+            return bindings[a.name]
+
+        if isinstance (a, Literal):
+            return a
+
+        raise Exception ('_apply_bindings not implemented yet for %s' % a.__class__)
+
     def subgoal(self):
 
         if self.cur_sym == SYM_IF:
@@ -675,8 +701,60 @@ class PrologParser(object):
 
             return [ Predicate ('or', [t, e]) ]
 
+        elif self.cur_sym == SYM_INLINE:
+
+            self.next_sym()
+
+            pred = self.relation()
+
+            # if self.cur_line == 38:
+            # import pdb; pdb.set_trace()
+
+            # see if we can find a clause that unifies with the pred to inline
+
+            clauses   = self.db.lookup(pred.name, arity=-1)
+            succeeded = None
+            succ_bind = None
+            for clause in reversed(clauses):
+
+                if len(clause.head.args) != len(pred.args): 
+                    continue
+
+                bindings = {}
+                if self.rt._unify (pred, {}, clause.head, bindings, clause.location, overwrite_vars = False):
+                    if succeeded:
+                        self.report_error ("inline: %s: more than one matching pred found." % unicode(pred))
+
+                    succeeded = clause
+                    succ_bind = bindings
+
+            if not succeeded:
+                self.report_error ("inline: %s: no matching pred found." % unicode(pred))
+
+            res = []
+
+            if isinstance(succeeded.body, Predicate):
+                if succeeded.body.name == 'and':
+                    for a in succeeded.body.args:
+                        res.append(self._apply_bindings(a, succ_bind))
+                else:
+                    res2 = []
+                    for a in succeeded.body.args:
+                        res2.append(self._apply_bindings(a, succ_bind))
+
+                    res.append(Predicate (succeeded.body.name, res2))
+
+            elif isinstance(succeeded.body, StringLiteral):
+                res.append(self._apply_bindings(succeeded.body, succ_bind))
+
+            else:
+                self.report_error ("inline: inlined predicate has wrong form.")
+
+            return res
+
         else:
             return [ self.term() ]
+
     def subgoals(self):
 
         res = self.subgoal()
