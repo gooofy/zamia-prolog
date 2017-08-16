@@ -39,7 +39,7 @@
 #
 # term          ::= add-term { rel-op add-term }
 #
-# rel-op        ::= '=' | '\=' | '<' | '>' | '=<' | '>=' | 'is' 
+# rel-op        ::= '=' | '\=' | '<' | '>' | '=<' | '>=' | 'is' | ':=' 
 #
 # add-term      ::= mul-term { add-op mul-term } 
 #
@@ -74,18 +74,12 @@ from nltools.tokenizer   import tokenize
 
 # lexer
 
-REL_OP   = set ([u'=', u'\\=', u'<', u'>', u'=<', u'>=', u'is']) 
-ADD_OP   = set ([u'+', u'-'])
-MUL_OP   = set ([u'*', u'/', u'div', u'mod'])
-UNARY_OP = set ([u'+', u'-'])
-
 NAME_CHARS = set([u'a',u'b',u'c',u'd',u'e',u'f',u'g',u'h',u'i',u'j',u'k',u'l',u'm',u'n',u'o',u'p',u'q',u'r',u's',u't',u'u',u'v',u'w',u'x',u'y',u'z',
                   u'A',u'B',u'C',u'D',u'E',u'F',u'G',u'H',u'I',u'J',u'K',u'L',u'M',u'N',u'O',u'P',u'Q',u'R',u'S',u'T',u'U',u'V',u'W',u'X',u'Y',u'Z',
                   u'_',u'0',u'1',u'2',u'3',u'4',u'5',u'6',u'7',u'8',u'9'])
 
 NAME_CHARS_EXTENDED = NAME_CHARS | set([':','|'])
 
-SIGN_CHARS = set([u'=',u'<',u'>',u'+',u'-',u'*',u'/',u'\\'])
 
 SYM_NONE       =  0
 SYM_EOF        =  1
@@ -105,10 +99,58 @@ SYM_LBRACKET   = 18   # [
 SYM_RBRACKET   = 19   # ]
 SYM_PIPE       = 20   # |
 SYM_CUT        = 21   # !
-SYM_IF         = 22   # if
-SYM_THEN       = 23   # then
-SYM_ELSE       = 24   # else
-SYM_ENDIF      = 25   # endif
+
+SYM_EQUAL      = 22   # =
+SYM_NEQUAL     = 23   # \=, !=
+SYM_LESS       = 24   # <
+SYM_GREATER    = 25   # >
+SYM_LESSEQ     = 26   # =<, <=
+SYM_GREATEREQ  = 27   # >=
+SYM_IS         = 28   # is
+SYM_SET        = 29   # set, :=
+
+SYM_PLUS       = 30   # +
+SYM_MINUS      = 31   # -
+SYM_ASTERISK   = 32   # *
+SYM_DIV        = 33   # div, /
+SYM_MOD        = 34   # mod
+
+SYM_IF         = 40   # if
+SYM_THEN       = 41   # then
+SYM_ELSE       = 42   # else
+SYM_ENDIF      = 43   # endif
+
+REL_OPS   = set([SYM_EQUAL,
+                 SYM_NEQUAL,
+                 SYM_LESS,
+                 SYM_GREATER,
+                 SYM_LESSEQ,
+                 SYM_GREATEREQ,
+                 SYM_IS,
+                 SYM_SET])
+
+UNARY_OPS = set([SYM_PLUS, SYM_MINUS])
+ADD_OPS   = set([SYM_PLUS, SYM_MINUS])
+MUL_OPS   = set([SYM_ASTERISK, SYM_DIV, SYM_MOD])
+
+REL_NAMES = {
+             SYM_EQUAL      : u'=',
+             SYM_NEQUAL     : u'\\=',
+             SYM_LESS       : u'<',
+             SYM_GREATER    : u'>',
+             SYM_LESSEQ     : u'=<',
+             SYM_GREATEREQ  : u'>=',
+             SYM_IS         : u'is',
+             SYM_SET        : u'set',
+             SYM_PLUS       : u'+',
+             SYM_MINUS      : u'-',
+             SYM_ASTERISK   : u'*',
+             SYM_DIV        : u'/',
+             SYM_MOD        : u'mod',
+             SYM_CUT        : u'cut',
+            }
+
+
 
 # structured comments
 CSTATE_IDLE    = 0
@@ -220,6 +262,8 @@ class PrologParser(object):
 
         self.cur_str = u''
 
+        # import pdb; pdb.set_trace()
+
         if self.cur_c == u'\'' or self.cur_c == u'"':
             self.cur_sym = SYM_STRING
             startc = self.cur_c
@@ -273,14 +317,14 @@ class PrologParser(object):
                 self.cur_sym = SYM_ELSE
             elif self.cur_str == 'endif':
                 self.cur_sym = SYM_ENDIF
-        elif self.cur_c in SIGN_CHARS:
-            self.cur_sym = SYM_NAME
-
-            while True:
-                self.cur_str += self.cur_c
-                self.next_c()
-                if not self.cur_c or not (self.cur_c in SIGN_CHARS):
-                    break
+            elif self.cur_str == 'is':
+                self.cur_sym = SYM_IS
+            elif self.cur_str == 'set':
+                self.cur_sym = SYM_SET
+            elif self.cur_str == 'div':
+                self.cur_sym = SYM_DIV
+            elif self.cur_str == 'mod':
+                self.cur_sym = SYM_MOD
 
         elif self.cur_c == u':':
             self.next_c()
@@ -288,6 +332,9 @@ class PrologParser(object):
             if self.cur_c == u'-':
                 self.next_c()
                 self.cur_sym = SYM_IMPL
+            elif self.cur_c == u'=':
+                self.next_c()
+                self.cur_sym = SYM_SET
             else:
                 self.cur_sym = SYM_COLON
 
@@ -322,15 +369,71 @@ class PrologParser(object):
             self.cur_sym = SYM_PIPE
             self.next_c()
 
-        elif self.cur_c == u'!':
-            self.cur_sym = SYM_NAME
-            self.cur_str = 'cut'
+        elif self.cur_c == u'+':
+            self.cur_sym = SYM_PLUS
             self.next_c()
+
+        elif self.cur_c == u'-':
+            self.cur_sym = SYM_MINUS
+            self.next_c()
+
+        elif self.cur_c == u'*':
+            self.cur_sym = SYM_ASTERISK
+            self.next_c()
+
+        elif self.cur_c == u'/':
+            self.cur_sym = SYM_DIV
+            self.next_c()
+
+        elif self.cur_c == u'!':
+            self.next_c()
+
+            if self.cur_c == u'=':
+                self.next_c()
+                self.cur_sym = SYM_NEQUAL
+            else:
+                self.cur_sym = SYM_CUT
+
+        elif self.cur_c == u'=':
+            self.next_c()
+
+            if self.cur_c == u'<':
+                self.next_c()
+                self.cur_sym = SYM_LESSEQ
+            else:
+                self.cur_sym = SYM_EQUAL
+
+        elif self.cur_c == u'<':
+            self.next_c()
+
+            if self.cur_c == u'=':
+                self.next_c()
+                self.cur_sym = SYM_LESSEQ
+            else:
+                self.cur_sym = SYM_LESS
+
+        elif self.cur_c == u'>':
+            self.next_c()
+
+            if self.cur_c == u'=':
+                self.next_c()
+                self.cur_sym = SYM_GREATEREQ
+            else:
+                self.cur_sym = SYM_GREATER
+
+        elif self.cur_c == u'\\':
+            self.next_c()
+
+            if self.cur_c == u'=':
+                self.next_c()
+                self.cur_sym = SYM_NEQUAL
+            else:
+                self.report_error ("Lexer error: \\= expected")
 
         else:
             self.report_error ("Illegal character: " + repr(self.cur_c))
 
-        #print "[%2d]" % self.cur_sym,
+        # logging.info( "[%2d]" % self.cur_sym )
 
 
     #
@@ -381,6 +484,8 @@ class PrologParser(object):
 
         elif self.cur_sym == SYM_NAME:
             res = self.relation()
+        elif self.cur_sym in REL_NAMES:
+            res = self.relation()
 
         elif self.cur_sym == SYM_LPAREN:
             self.next_sym()
@@ -401,7 +506,7 @@ class PrologParser(object):
             res = self.parse_list()
 
         else:
-            self.report_error ("primary term: variable / number / string / name / ( expected.")
+            self.report_error ("primary term: variable / number / string / name / ( expected, sym #%d found instead." % self.cur_sym)
 
         # logging.debug ('primary_term: %s' % str(res))
 
@@ -411,8 +516,8 @@ class PrologParser(object):
 
         o = None
 
-        if self.cur_sym == SYM_NAME and self.cur_str in UNARY_OP:
-            o = self.cur_str
+        if self.cur_sym in UNARY_OPS:
+            o = REL_NAMES[self.cur_sym]
             self.next_sym()
 
         res = self.primary_term()
@@ -432,8 +537,9 @@ class PrologParser(object):
 
         args.append(self.unary_term())
 
-        while self.cur_sym == SYM_NAME and self.cur_str in MUL_OP:
-            ops.append(self.cur_str)
+        while self.cur_sym in MUL_OPS:
+            o = REL_NAMES[self.cur_sym]
+            ops.append(o)
             self.next_sym()
             args.append(self.unary_term())
 
@@ -460,8 +566,9 @@ class PrologParser(object):
 
         args.append(self.mul_term())
 
-        while self.cur_sym == SYM_NAME and self.cur_str in ADD_OP:
-            ops.append(self.cur_str)
+        while self.cur_sym in ADD_OPS:
+            o = REL_NAMES[self.cur_sym]
+            ops.append(o)
             self.next_sym()
             args.append(self.mul_term())
 
@@ -487,8 +594,8 @@ class PrologParser(object):
 
         args.append(self.add_term())
 
-        while self.cur_sym == SYM_NAME and self.cur_str in REL_OP:
-            ops.append(self.cur_str)
+        while self.cur_sym in REL_OPS:
+            ops.append(REL_NAMES[self.cur_sym])
             self.next_sym()
             args.append(self.add_term())
 
@@ -510,9 +617,12 @@ class PrologParser(object):
 
     def relation(self):
 
-        if self.cur_sym != SYM_NAME:
+        if self.cur_sym in REL_NAMES:
+            name = REL_NAMES[self.cur_sym]
+        elif self.cur_sym == SYM_NAME:
+            name = self.cur_str
+        else:
             self.report_error ("Name expected.")
-        name = self.cur_str
         self.next_sym()
 
         args = None
