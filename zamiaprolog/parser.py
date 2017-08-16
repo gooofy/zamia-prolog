@@ -162,9 +162,10 @@ CSTATE_BODY    = 2
 
 class PrologParser(object):
 
-    def __init__(self):
+    def __init__(self, db):
         # compile-time built-in predicates
-        self.directives       = {}
+        self.directives = {}
+        self.db         = db 
     
     def report_error(self, s):
         raise PrologError ("%s: error in line %d col %d: %s" % (self.prolog_fn, self.cur_line, self.cur_col, s))
@@ -785,7 +786,7 @@ class PrologParser(object):
 
         return Predicate ('or', res)
 
-    def clause(self, db):
+    def clause(self):
 
         res = []
 
@@ -811,7 +812,7 @@ class PrologParser(object):
 
         if c.head.name in self.directives:
             f, user_data = self.directives[c.head.name]
-            f(db, self.module_name, c, user_data)
+            f(self.db, self.module_name, c, user_data)
 
         else:
             res.append(c)
@@ -854,15 +855,15 @@ class PrologParser(object):
     def parse_line_clauses (self, line):
 
         self.start (StringIO(line), '<str>')
-        return self.clause(None)
+        return self.clause()
 
     def register_directive(self, name, f, user_data):
         self.directives[name] = (f, user_data)
 
-    def clear_module (self, module_name, db):
-        db.clear_module(module_name)
+    def clear_module (self, module_name):
+        self.db.clear_module(module_name)
 
-    def compile_file (self, filename, module_name, db, clear_module=False):
+    def compile_file (self, filename, module_name, clear_module=False):
 
         # quick source line count for progress output below
 
@@ -882,21 +883,21 @@ class PrologParser(object):
             self.start(f, filename, module_name=module_name)
 
             while self.cur_sym != SYM_EOF:
-                clauses = self.clause(db)
+                clauses = self.clause()
 
                 for clause in clauses:
                     logging.debug(u"%7d / %7d (%3d%%) > %s" % (self.cur_line, self.linecnt, self.cur_line * 100 / self.linecnt, unicode(clause)))
 
-                    db.store (module_name, clause)
+                    self.db.store (module_name, clause)
 
                 if self.comment_pred:
 
-                    db.store_doc (module_name, self.comment_pred, self.comment)
+                    self.db.store_doc (module_name, self.comment_pred, self.comment)
 
                     self.comment_pred = None
                     self.comment = ''
 
-        db.commit()
+        self.db.commit()
 
         logging.info("Compilation succeeded.")
 

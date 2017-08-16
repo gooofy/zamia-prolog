@@ -45,7 +45,7 @@ class TestBuiltins (unittest.TestCase):
         # setup compiler + environment
 
         self.db     = LogicDB(db_url)
-        self.parser = PrologParser()
+        self.parser = PrologParser(self.db)
         self.rt     = PrologRuntime(self.db)
 
         self.db.clear_module(UNITTEST_MODULE)
@@ -53,7 +53,7 @@ class TestBuiltins (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_hanoi1(self):
 
-        self.parser.compile_file('samples/hanoi1.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/hanoi1.pl', UNITTEST_MODULE)
 
         clause = self.parser.parse_line_clause_body('move(3,left,right,center)')
         logging.debug('clause: %s' % clause)
@@ -123,7 +123,7 @@ class TestBuiltins (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_list_findall(self):
 
-        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE)
 
         clause = self.parser.parse_line_clause_body('list_findall(X, woman(X), L)')
         solutions = self.rt.search(clause)
@@ -368,7 +368,7 @@ class TestBuiltins (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_set_findall(self):
 
-        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE)
 
         clause = self.parser.parse_line_clause_body('set_findall(X, woman(X), S)')
         solutions = self.rt.search(clause)

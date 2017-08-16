@@ -46,7 +46,7 @@ class TestNegation (unittest.TestCase):
         # setup compiler + environment
 
         self.db     = LogicDB(db_url)
-        self.parser = PrologParser()
+        self.parser = PrologParser(self.db)
         self.rt     = PrologRuntime(self.db)
 
         self.db.clear_module(UNITTEST_MODULE)
@@ -73,7 +73,7 @@ class TestNegation (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_chancellors(self):
 
-        self.parser.compile_file('samples/not_test.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/not_test.pl', UNITTEST_MODULE)
 
         clause = self.parser.parse_line_clause_body('was_chancellor(helmut_kohl).')
         logging.debug('clause: %s' % clause)
@@ -84,7 +84,7 @@ class TestNegation (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_double_negation(self):
 
-        self.parser.compile_file('samples/not_test.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/not_test.pl', UNITTEST_MODULE)
 
         clause = self.parser.parse_line_clause_body('not(not(chancellor(helmut_kohl))).')
         logging.debug('clause: %s' % clause)

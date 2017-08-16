@@ -47,7 +47,7 @@ class TestZamiaProlog (unittest.TestCase):
         # setup compiler + environment
 
         self.db     = LogicDB(db_url)
-        self.parser = PrologParser()
+        self.parser = PrologParser(self.db)
         self.rt     = PrologRuntime(self.db)
 
         self.db.clear_module(UNITTEST_MODULE)
@@ -89,7 +89,7 @@ class TestZamiaProlog (unittest.TestCase):
 
         self.assertEqual (len(self.db.lookup('party', 0)), 0)
 
-        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/kb1.pl', UNITTEST_MODULE)
 
         self.assertEqual (len(self.db.lookup('party', 0)), 1)
 
@@ -126,7 +126,7 @@ class TestZamiaProlog (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_or(self):
 
-        self.parser.compile_file('samples/or_test.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/or_test.pl', UNITTEST_MODULE)
 
         # self.rt.set_trace(True)
 
@@ -140,7 +140,7 @@ class TestZamiaProlog (unittest.TestCase):
 
     def test_or_toplevel(self):
 
-        self.parser.compile_file('samples/or_test.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/or_test.pl', UNITTEST_MODULE)
 
         clause = self.parser.parse_line_clause_body(u'woman(mary); woman(jody)')
         logging.debug(u'clause: %s' % clause)
@@ -246,7 +246,7 @@ class TestZamiaProlog (unittest.TestCase):
 
     def test_cut(self):
 
-        self.parser.compile_file('samples/cut_test.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/cut_test.pl', UNITTEST_MODULE)
 
         # self.rt.set_trace(True)
 

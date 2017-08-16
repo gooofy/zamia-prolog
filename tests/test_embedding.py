@@ -92,7 +92,7 @@ class TestEmbeddings (unittest.TestCase):
         # setup compiler + environment
 
         self.db     = LogicDB(db_url, echo=False)
-        self.parser = PrologParser()
+        self.parser = PrologParser(self.db)
         self.rt     = PrologRuntime(self.db)
 
         # self.rt.set_trace(True)
@@ -104,7 +104,7 @@ class TestEmbeddings (unittest.TestCase):
 
         global recorded_moves
 
-        self.parser.compile_file('samples/hanoi2.pl', UNITTEST_MODULE, self.db)
+        self.parser.compile_file('samples/hanoi2.pl', UNITTEST_MODULE)
 
         clause = self.parser.parse_line_clause_body('move(3,left,right,center)')
         logging.debug('clause: %s' % clause)
@@ -145,7 +145,7 @@ class TestEmbeddings (unittest.TestCase):
         self.parser.register_directive('custom_directive', self._custom_directive, None)
         self.directive_mark = False
 
-        # self.parser.compile_file('samples/dir.pl', UNITTEST_MODULE, self.db)
+        # self.parser.compile_file('samples/dir.pl', UNITTEST_MODULE)
         clauses = self.parser.parse_line_clauses('custom_directive(abc, 42, \'foo\').')
 
         self.assertEqual (self.directive_mark, True)
