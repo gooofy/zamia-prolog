@@ -40,45 +40,6 @@ from errors  import *
 PROLOG_LOGGER_NAME = 'prolog'
 prolog_logger = logging.getLogger(PROLOG_LOGGER_NAME)
 
-def builtin_is(g, rt):
-
-    rt._trace ('CALLED BUILTIN is (?Ques, +Ans)', g)
-
-    pred = g.terms[g.inx]
-    args = pred.args
-    if len(args) != 2:
-        raise PrologRuntimeError('is: 2 args (?Ques, +Ans) expected.', g.location)
-
-    ques = rt.prolog_eval(pred.args[0], g.env, g.location)
-    ans  = rt.prolog_eval(pred.args[1], g.env, g.location)
-
-    if isinstance(ques, Variable):
-        if ques.name != u'_':
-            g.env[ques.name] = ans  # Set variable
-        return True
-
-    if ques != ans:
-        return False
-
-    return True
-
-def builtin_set(g, rt):
-
-    rt._trace ('CALLED BUILTIN set (?Var, +Val)', g)
-
-    pred = g.terms[g.inx]
-    args = pred.args
-    if len(args) != 2:
-        raise PrologRuntimeError('set: 2 args (?Var, +Val) expected.', g.location)
-
-    arg_Var = pred.args[0]
-    arg_Val = rt.prolog_eval(pred.args[1], g.env, g.location)
-
-    if not isinstance(arg_Var, Variable):
-        raise PrologRuntimeError('set: arg 0 Variable expected, %s (%s) found instead.' % (unicode(arg_Var), arg_Var.__class__), g.location)
-
-    return [ {arg_Var.name: arg_Val} ]
-
 def builtin_cmp_op(g, op, rt):
 
     pred = g.terms[g.inx]

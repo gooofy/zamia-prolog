@@ -59,7 +59,7 @@ binary_operators = {'+'  : prolog_binary_add,
                     'mod': prolog_binary_mod,
                     }
 
-builtin_specials = set(['cut', 'fail', 'not', 'or', 'and'])
+builtin_specials = set(['cut', 'fail', 'not', 'or', 'and', 'is', 'set'])
 
 class PrologGoal:
 
@@ -162,8 +162,10 @@ class PrologRuntime(object):
         self.register_builtin('ignore',          builtin_ignore)         # ignore (+P)
         self.register_builtin('var',             builtin_var)            # var (+Term)
         self.register_builtin('nonvar',          builtin_nonvar)         # nonvar (+Term)
-        self.register_builtin('is',              builtin_is)             # is (?Ques, +Ans)
-        self.register_builtin('set',             builtin_set)            # set (?Var, +Val)
+
+        # these have become specials now
+        # self.register_builtin('is',              builtin_is)             # is (?Ques, +Ans)
+        # self.register_builtin('set',             builtin_set)            # set (?Var, +Val)
 
         # lists
 
@@ -532,6 +534,173 @@ class PrologRuntime(object):
 
         solution[ASSERT_OVERLAY_VAR_NAME].do_apply(module, self.db, commit=True)
 
+    def _special_is(self, g):
+
+        self._trace ('CALLED SPECIAL is (?Ques, +Ans)', g)
+
+        pred = g.terms[g.inx]
+        args = pred.args
+        if len(args) != 2:
+            raise PrologRuntimeError('is: 2 args (?Ques, +Ans) expected.', g.location)
+
+        ques = self.prolog_eval(pred.args[0], g.env, g.location)
+        ans  = self.prolog_eval(pred.args[1], g.env, g.location)
+
+        # handle pseudo-variable assignment
+        if (isinstance (ques, Variable) or isinstance (ques, Predicate)) and (":" in ques.name):
+
+            parts = ques.name.split(':')
+
+            v = parts[0]
+
+            if v[0].isupper():
+                if not v in g.env:
+                    raise PrologRuntimeError('is: unbound variable %s.' % v, g.location)
+                v = g.env[v]
+            else:
+                v = Predicate(v)
+
+            for part in parts[1:len(parts)-1]:
+                
+                subparts = part.split('|')
+
+                pattern = [v]
+                wildcard_found = False
+                for sp in subparts[1:]:
+                    if sp == '_':
+                        wildcard_found = True
+                        pattern.append('_1')
+                    else:
+                        pattern.append(Predicate(sp))
+
+                if not wildcard_found:
+                    pattern.append('_1')
+
+                solutions = self.search_predicate (subparts[0], pattern, env=g.env)
+                if len(solutions)<1:
+                    raise PrologRuntimeError(u'is: failed to match part "%s" of "%s".' % (part, unicode(ques)), g.location)
+                v = solutions[0]['_1']
+
+            lastpart = parts[len(parts)-1]
+
+            subparts = lastpart.split('|')
+
+            r_pattern = [v]
+            a_pattern = [v]
+            wildcard_found = False
+            for sp in subparts[1:]:
+                if sp == '_':
+                    wildcard_found = True
+                    r_pattern.append(Variable('_'))
+                    a_pattern.append(ans)
+                else:
+                    r_pattern.append(Predicate(sp))
+                    a_pattern.append(Predicate(sp))
+
+            if not wildcard_found:
+                r_pattern.append(Variable('_'))
+                a_pattern.append(ans)
+
+            g.env = do_retract ({}, Predicate ( subparts[0], r_pattern), res=g.env)
+            g.env = do_assertz ({}, Clause ( Predicate(subparts[0], a_pattern), location=g.location), res=g.env)
+
+            return True
+
+        # regular is/2 semantics
+
+        if isinstance(ques, Variable):
+            if ques.name != u'_':
+                g.env[ques.name] = ans  # Set variable
+            return True
+
+        if ques != ans:
+            return False
+
+        return True
+
+    def _special_set(self, g):
+
+        self._trace ('CALLED BUILTIN set (-Var, +Val)', g)
+
+        pred = g.terms[g.inx]
+        args = pred.args
+        if len(args) != 2:
+            raise PrologRuntimeError('set: 2 args (-Var, +Val) expected.', g.location)
+
+        arg_Var = pred.args[0]
+        arg_Val = self.prolog_eval(pred.args[1], g.env, g.location)
+
+        # handle pseudo-variable assignment
+        if (isinstance (arg_Var, Variable) or isinstance (arg_Var, Predicate)) and (":" in arg_Var.name):
+
+            parts = arg_Var.name.split(':')
+
+            v = parts[0]
+
+            if v[0].isupper():
+                if not v in g.env:
+                    raise PrologRuntimeError('set: unbound variable %s.' % v, g.location)
+                v = g.env[v]
+            else:
+                v = Predicate(v)
+
+            for part in parts[1:len(parts)-1]:
+                
+                subparts = part.split('|')
+
+                pattern = [v]
+                wildcard_found = False
+                for sp in subparts[1:]:
+                    if sp == '_':
+                        wildcard_found = True
+                        pattern.append('_1')
+                    else:
+                        pattern.append(Predicate(sp))
+
+                if not wildcard_found:
+                    pattern.append('_1')
+
+                solutions = self.search_predicate (subparts[0], pattern, env=g.env)
+                if len(solutions)<1:
+                    raise PrologRuntimeError(u'set: failed to match part "%s" of "%s".' % (part, unicode(arg_Var)), g.location)
+                v = solutions[0]['_1']
+
+            lastpart = parts[len(parts)-1]
+
+            subparts = lastpart.split('|')
+
+            r_pattern = [v]
+            a_pattern = [v]
+            wildcard_found = False
+            for sp in subparts[1:]:
+                if sp == '_':
+                    wildcard_found = True
+                    r_pattern.append(Variable('_'))
+                    a_pattern.append(arg_Val)
+                else:
+                    r_pattern.append(Predicate(sp))
+                    a_pattern.append(Predicate(sp))
+
+            if not wildcard_found:
+                r_pattern.append(Variable('_'))
+                a_pattern.append(arg_Val)
+
+            # import pdb; pdb.set_trace()
+
+            g.env = do_retract ({}, Predicate ( subparts[0], r_pattern), res=g.env)
+            g.env = do_assertz ({}, Clause ( Predicate(subparts[0], a_pattern), location=g.location), res=g.env)
+
+            return True
+
+        # regular set/2 semantics
+
+        if not isinstance(arg_Var, Variable):
+            raise PrologRuntimeError('set: arg 0 Variable expected, %s (%s) found instead.' % (unicode(arg_Var), arg_Var.__class__), g.location)
+
+        g.env[arg_Var.name] = arg_Val  # Set variable
+
+        return True
+
     def search (self, clause, env={}):
 
         if clause.body is None:
@@ -605,6 +774,16 @@ class PrologRuntime(object):
                 elif name == 'and':
                     stack.append(PrologGoal(pred, pred.args, g, env=copy.copy(g.env), location=g.location))
                     continue
+
+                elif name == 'is':
+                    if not (self._special_is (g)):
+                        self._finish_goal (g, False, stack, solutions)
+                        continue
+
+                elif name == 'set':
+                    if not (self._special_set (g)):
+                        self._finish_goal (g, False, stack, solutions)
+                        continue
 
                 g.inx = g.inx + 1               # Succeed. resume self.
                 stack.append(g)
