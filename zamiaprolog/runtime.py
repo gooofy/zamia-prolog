@@ -214,6 +214,50 @@ class PrologRuntime(object):
 
     def prolog_eval (self, term, env, location):      # eval all variables within a term to constants
 
+        #
+        # implement Pseudo-Variables and -Predicates, e.g. USER:NAME 
+        #
+
+        if (isinstance (term, Variable) or isinstance (term, Predicate)) and (":" in term.name):
+
+            # import pdb; pdb.set_trace()
+
+            parts = term.name.split(':')
+
+            v = parts[0]
+
+            if v[0].isupper():
+                if not v in env:
+                    raise PrologRuntimeError('is: unbound variable %s.' % v, location)
+                v = env[v]
+
+            for part in parts[1:]:
+
+                subparts = part.split('|')
+
+                pattern = [v]
+                wildcard_found = False
+                for sp in subparts[1:]:
+                    if sp == '_':
+                        wildcard_found = True
+                        pattern.append('_1')
+                    else:
+                        pattern.append(sp)
+
+                if not wildcard_found:
+                    pattern.append('_1')
+
+                solutions = self.search_predicate (subparts[0], pattern, env=env)
+                if len(solutions)<1:
+                    return Variable(term.name)
+                v = solutions[0]['_1']
+
+            return v
+
+        #
+        # regular eval semantics
+        #
+
         if isinstance(term, Predicate):
 
             # unary builtin ?
