@@ -21,9 +21,9 @@
 # Zamia-Prolog 
 # ------------
 #
-# parser, scanner
-#
 # Zamia-Prolog grammar
+#
+# program       ::= { clause }
 #
 # clause        ::= relation [ ':-' clause_body ] '.' 
 #
@@ -31,7 +31,11 @@
 #
 # clause_body   ::= subgoals { ';' subgoals }
 #
-# subgoals      ::= term { ',' term }
+# subgoals      ::= subgoal { ',' subgoal }
+#
+# subgoal       ::= ( term | conditional )
+#
+# conditional   ::= 'if' term 'then' subgoals [ 'else' subgoals ] 'endif'
 #
 # term          ::= add-term { rel-op add-term }
 #
@@ -49,9 +53,7 @@
 #
 # unary-op      ::= '+' | '-' 
 #
-# macro_call    ::= macro_name
-#
-# primary-term  ::= ( variable | number | string | list | relation | macro_call | '(' term { ',' term } ')' | '!' )
+# primary-term  ::= ( variable | number | string | list | relation | '(' term { ',' term } ')' | '!' )
 #
 # list          ::= '[' [ primary-term ] ( { ',' primary-term } | '|' primary-term ) ']'
 #
@@ -61,12 +63,14 @@ import sys
 import logging
 import codecs
 import re
-import copy
 
-from StringIO import StringIO
+from copy                import copy
+from StringIO            import StringIO
 
-from logic import *
-from errors import *
+from zamiaprolog.logic   import *
+from zamiaprolog.errors  import *
+from zamiaprolog.runtime import PrologRuntime
+from nltools.tokenizer   import tokenize
 
 # lexer
 
@@ -75,11 +79,11 @@ ADD_OP   = set ([u'+', u'-'])
 MUL_OP   = set ([u'*', u'/', u'div', u'mod'])
 UNARY_OP = set ([u'+', u'-'])
 
-NAME_CHARS = set(['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-                  'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-                  '_','0','1','2','3','4','5','6','7','8','9'])
+NAME_CHARS = set([u'a',u'b',u'c',u'd',u'e',u'f',u'g',u'h',u'i',u'j',u'k',u'l',u'm',u'n',u'o',u'p',u'q',u'r',u's',u't',u'u',u'v',u'w',u'x',u'y',u'z',
+                  u'A',u'B',u'C',u'D',u'E',u'F',u'G',u'H',u'I',u'J',u'K',u'L',u'M',u'N',u'O',u'P',u'Q',u'R',u'S',u'T',u'U',u'V',u'W',u'X',u'Y',u'Z',
+                  u'_',u'0',u'1',u'2',u'3',u'4',u'5',u'6',u'7',u'8',u'9'])
 
-NAME_CHARS_EXTENDED = NAME_CHARS | set([':'])
+NAME_CHARS_EXTENDED = NAME_CHARS | set([':','|'])
 
 SIGN_CHARS = set([u'=',u'<',u'>',u'+',u'-',u'*',u'/',u'\\'])
 
@@ -89,7 +93,6 @@ SYM_STRING     =  2   # 'abc'
 SYM_NAME       =  3   # abc aWord =< is div + 
 SYM_VARIABLE   =  4   # X Variable _Variable _
 SYM_NUMBER     =  5  
-SYM_MACRO_NAME =  6   # name starting with '@', required to contain a colon
 
 SYM_IMPL       = 10   # :-
 SYM_LPAREN     = 11   # (
@@ -102,6 +105,10 @@ SYM_LBRACKET   = 18   # [
 SYM_RBRACKET   = 19   # ]
 SYM_PIPE       = 20   # |
 SYM_CUT        = 21   # !
+SYM_IF         = 22   # if
+SYM_THEN       = 23   # then
+SYM_ELSE       = 24   # else
+SYM_ENDIF      = 25   # endif
 
 # structured comments
 CSTATE_IDLE    = 0
@@ -127,11 +134,11 @@ class PrologParser(object):
         if self.cur_c == u'\n':
             self.cur_line += 1
             self.cur_col   = 1
-            if self.linecnt > 0 and self.cur_line % 100 == 0:
-                print "%s: parsing line %6d / %6d (%3d%%)" % (self.prolog_fn, 
-                                                              self.cur_line, 
-                                                              self.linecnt, 
-                                                              self.cur_line * 100 / self.linecnt)
+            if (self.linecnt > 0) and (self.cur_line % 1000 == 0):
+                logging.info ("%s: parsing line %6d / %6d (%3d%%)" % (self.prolog_fn, 
+                                                                      self.cur_line, 
+                                                                      self.linecnt, 
+                                                                      self.cur_line * 100 / self.linecnt))
 
         # print '[', self.cur_c, ']',
 
@@ -139,6 +146,24 @@ class PrologParser(object):
         peek_c = unicode(self.prolog_f.read(1))
         self.prolog_f.seek(-1,1)
         return peek_c
+
+    def is_name_char(self, c):
+        if c in NAME_CHARS:
+            return True
+
+        if ord(c) >= 128:
+            return True
+
+        return False
+
+    def is_name_char_ext(self, c):
+        if c in NAME_CHARS_EXTENDED:
+            return True
+
+        if ord(c) >= 128:
+            return True
+
+        return False
 
     def next_sym(self):
 
@@ -229,19 +254,25 @@ class PrologParser(object):
                 if not self.cur_c or (not self.cur_c.isdigit() and self.cur_c != '.'):
                     break
 
-        elif self.cur_c in NAME_CHARS or self.cur_c == '@':
-            if self.cur_c == '@':
-                self.next_c()
-                self.cur_sym = SYM_MACRO_NAME
-            else:
-                self.cur_sym = SYM_VARIABLE if self.cur_c == u'_' or self.cur_c.isupper() else SYM_NAME
+        elif self.is_name_char(self.cur_c):
+            self.cur_sym = SYM_VARIABLE if self.cur_c == u'_' or self.cur_c.isupper() else SYM_NAME
 
             while True:
                 self.cur_str += self.cur_c
                 self.next_c()
-                if not self.cur_c or not (self.cur_c in NAME_CHARS_EXTENDED):
+                if not self.cur_c or not self.is_name_char_ext(self.cur_c):
                     break
 
+            # keywords
+
+            if self.cur_str == 'if':
+                self.cur_sym = SYM_IF
+            elif self.cur_str == 'then':
+                self.cur_sym = SYM_THEN
+            elif self.cur_str == 'else':
+                self.cur_sym = SYM_ELSE
+            elif self.cur_str == 'endif':
+                self.cur_sym = SYM_ENDIF
         elif self.cur_c in SIGN_CHARS:
             self.cur_sym = SYM_NAME
 
@@ -351,9 +382,6 @@ class PrologParser(object):
         elif self.cur_sym == SYM_NAME:
             res = self.relation()
 
-        elif self.cur_sym == SYM_MACRO_NAME:
-            res = self.macro_call()
-
         elif self.cur_sym == SYM_LPAREN:
             self.next_sym()
             res = self.term()
@@ -378,19 +406,6 @@ class PrologParser(object):
         # logging.debug ('primary_term: %s' % str(res))
 
         return res
-
-    def macro_call(self):
-
-        loc = self.get_location()
-
-        mc = self.cur_str
-        self.next_sym()
-        
-        parts = mc.split(':')
-        if len(parts) != 2:
-            self.report_error ("macro:var expected.")
-
-        return MacroCall(parts[0], parts[1], location=loc)
 
     def unary_term(self):
 
@@ -521,15 +536,46 @@ class PrologParser(object):
 
         return Predicate (name, args)
 
+    def subgoal(self):
+
+        if self.cur_sym == SYM_IF:
+
+            self.next_sym()
+
+            c = self.term()
+
+            if self.cur_sym != SYM_THEN:
+                self.report_error ("subgoal: then expected.")
+            self.next_sym()
+
+            t = self.subgoals()
+            t = Predicate ('and', [c, t])
+
+            if self.cur_sym == SYM_ELSE:
+                self.next_sym()
+                e  = self.subgoals()
+                nc = Predicate ('not', [c])
+                e  = Predicate ('and', [nc, e])
+            else:
+                e = Predicate ('true')
+
+            if self.cur_sym != SYM_ENDIF:
+                self.report_error ("subgoal: endif expected.")
+            self.next_sym()
+
+            return [ Predicate ('or', [t, e]) ]
+
+        else:
+            return [ self.term() ]
     def subgoals(self):
 
-        res = [ self.term() ]
+        res = self.subgoal()
 
         while self.cur_sym == SYM_COMMA:
             self.next_sym()
 
-            t2 = self.term()
-            res.append(t2)
+            t2 = self.subgoal()
+            res.extend(t2)
 
         if len(res) == 1:
             return res[0]
@@ -591,7 +637,7 @@ class PrologParser(object):
     # high-level interface
     #
 
-    def start (self, prolog_f, prolog_fn, linecnt = 0, module_name = None):
+    def start (self, prolog_f, prolog_fn, linecnt = 1, module_name = None):
 
         self.cur_c        = u' '
         self.cur_sym      = SYM_NONE
@@ -632,11 +678,11 @@ class PrologParser(object):
 
         # quick source line count for progress output below
 
-        linecnt = 1
+        self.linecnt = 1
         with codecs.open(filename, encoding='utf-8', errors='ignore', mode='r') as f:
             while f.readline():
-                linecnt += 1
-        logging.info("%s: %d lines." % (filename, linecnt))
+                self.linecnt += 1
+        logging.info("%s: %d lines." % (filename, self.linecnt))
 
         # remove old predicates of this module from db
         if clear_module:
@@ -651,7 +697,7 @@ class PrologParser(object):
                 clauses = self.clause(db)
 
                 for clause in clauses:
-                    logging.debug(u"%7d / %7d (%3d%%) > %s" % (self.cur_line, linecnt, self.cur_line * 100 / linecnt, unicode(clause)))
+                    logging.debug(u"%7d / %7d (%3d%%) > %s" % (self.cur_line, self.linecnt, self.cur_line * 100 / self.linecnt, unicode(clause)))
 
                     db.store (module_name, clause)
 
