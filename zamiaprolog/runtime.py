@@ -422,9 +422,12 @@ class PrologRuntime(object):
         "update dest env from src. return true if unification succeeds"
         # logging.debug("Unify %s %s to %s %s" % (src, srcEnv, dest, destEnv))
 
+        # import pdb; pdb.set_trace()
         if isinstance (src, Variable):
-            if src.name == u'_':
+            if (src.name == u'_'):
                 return True
+            # if ':' in src.name:
+            #     import pdb; pdb.set_trace()
             srcVal = self.prolog_eval(src, srcEnv, location)
             if isinstance (srcVal, Variable): 
                 return True 
@@ -432,13 +435,34 @@ class PrologRuntime(object):
                 return self._unify(srcVal, srcEnv, dest, destEnv, location, overwrite_vars)
 
         if isinstance (dest, Variable):
-            if dest.name == u'_':
+            if (dest.name == u'_'):
                 return True
             destVal = self.prolog_eval(dest, destEnv, location)     # evaluate destination
             if not isinstance(destVal, Variable) and not overwrite_vars: 
                 return self._unify(src, srcEnv, destVal, destEnv, location, overwrite_vars)
             else:
-                destEnv[dest.name] = self.prolog_eval(src, srcEnv, location)
+
+                # handle pseudo-vars?
+
+                if ':' in dest.name:
+                    # import pdb; pdb.set_trace()
+
+                    pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (dest, self.prolog_eval(src, srcEnv, location), destEnv)
+
+                    ovl = destEnv.get(ASSERT_OVERLAY_VAR_NAME)
+                    if ovl is None:
+                        ovl = LogicDBOverlay()
+                    else:
+                        ovl = ovl.clone()
+
+                    ovl.retract(Predicate ( pname, r_pattern))
+                    ovl.assertz(Clause ( Predicate(pname, a_pattern), location=location))
+
+                    destEnv[ASSERT_OVERLAY_VAR_NAME] = ovl
+
+                else:
+                    destEnv[dest.name] = self.prolog_eval(src, srcEnv, location)
+
                 return True                         # unifies. destination updated
 
         elif isinstance (src, Literal):
@@ -505,8 +529,6 @@ class PrologRuntime(object):
         if ASSERT_OVERLAY_VAR_NAME in goal.env:
             goal.env[ASSERT_OVERLAY_VAR_NAME].log_trace(indent)
             
-        # import pdb; pdb.set_trace()
-
         # res += u'env=%s' % unicode(self.env)
         
     def _trace_fn (self, label, env):
@@ -578,86 +600,92 @@ class PrologRuntime(object):
 
         solution[ASSERT_OVERLAY_VAR_NAME].do_apply(module, self.db, commit=True)
 
-    def _special_is(self, g):
+    def _compute_retract_assert_patterns (self, arg_Var, arg_Val, env):
 
-        self._trace ('CALLED SPECIAL is (?Ques, +Ans)', g)
+        parts = arg_Var.name.split(':')
 
-        pred = g.terms[g.inx]
-        args = pred.args
-        if len(args) != 2:
-            raise PrologRuntimeError('is: 2 args (?Ques, +Ans) expected.', g.location)
+        v = parts[0]
 
-        ques = self.prolog_eval(pred.args[0], g.env, g.location)
-        ans  = self.prolog_eval(pred.args[1], g.env, g.location)
+        if v[0].isupper():
+            if not v in env:
+                raise PrologRuntimeError('%s: unbound variable %s.' % (arg_Var.name, v), g.location)
+            v = env[v]
+        else:
+            v = Predicate(v)
 
-        # handle pseudo-variable assignment
-        if (isinstance (ques, Variable) or isinstance (ques, Predicate)) and (":" in ques.name):
+        for part in parts[1:len(parts)-1]:
+            
+            subparts = part.split('|')
 
-            parts = ques.name.split(':')
-
-            v = parts[0]
-
-            if v[0].isupper():
-                if not v in g.env:
-                    raise PrologRuntimeError('is: unbound variable %s.' % v, g.location)
-                v = g.env[v]
-            else:
-                v = Predicate(v)
-
-            for part in parts[1:len(parts)-1]:
-                
-                subparts = part.split('|')
-
-                pattern = [v]
-                wildcard_found = False
-                for sp in subparts[1:]:
-                    if sp == '_':
-                        wildcard_found = True
-                        pattern.append('_1')
-                    else:
-                        pattern.append(Predicate(sp))
-
-                if not wildcard_found:
-                    pattern.append('_1')
-
-                solutions = self.search_predicate (subparts[0], pattern, env=g.env)
-                if len(solutions)<1:
-                    raise PrologRuntimeError(u'is: failed to match part "%s" of "%s".' % (part, unicode(ques)), g.location)
-                v = solutions[0]['_1']
-
-            lastpart = parts[len(parts)-1]
-
-            subparts = lastpart.split('|')
-
-            r_pattern = [v]
-            a_pattern = [v]
+            pattern = [v]
             wildcard_found = False
             for sp in subparts[1:]:
                 if sp == '_':
                     wildcard_found = True
-                    r_pattern.append(Variable('_'))
-                    a_pattern.append(ans)
+                    pattern.append('_1')
                 else:
-                    r_pattern.append(Predicate(sp))
-                    a_pattern.append(Predicate(sp))
+                    pattern.append(Predicate(sp))
 
             if not wildcard_found:
-                r_pattern.append(Variable('_'))
-                a_pattern.append(ans)
+                pattern.append('_1')
 
-            g.env = do_retract ({}, Predicate ( subparts[0], r_pattern), res=g.env)
-            g.env = do_assertz ({}, Clause ( Predicate(subparts[0], a_pattern), location=g.location), res=g.env)
+            solutions = self.search_predicate (subparts[0], pattern, env=env)
+            if len(solutions)<1:
+                raise PrologRuntimeError(u'is: failed to match part "%s" of "%s".' % (part, unicode(arg_Var)), g.location)
+            v = solutions[0]['_1']
+
+        lastpart = parts[len(parts)-1]
+
+        subparts = lastpart.split('|')
+
+        r_pattern = [v]
+        a_pattern = [v]
+        wildcard_found = False
+        for sp in subparts[1:]:
+            if sp == '_':
+                wildcard_found = True
+                r_pattern.append(Variable('_'))
+                a_pattern.append(arg_Val)
+            else:
+                r_pattern.append(Predicate(sp))
+                a_pattern.append(Predicate(sp))
+
+        if not wildcard_found:
+            r_pattern.append(Variable('_'))
+            a_pattern.append(arg_Val)
+
+        return subparts[0], r_pattern, a_pattern
+
+    def _special_is(self, g):
+
+        self._trace ('CALLED SPECIAL is (?Var, +Val)', g)
+
+        pred = g.terms[g.inx]
+        args = pred.args
+        if len(args) != 2:
+            raise PrologRuntimeError('is: 2 args (?Var, +Val) expected.', g.location)
+
+        arg_Var = self.prolog_eval(pred.args[0], g.env, g.location)
+        arg_Val = self.prolog_eval(pred.args[1], g.env, g.location)
+
+        # handle pseudo-variable assignment
+        if (isinstance (arg_Var, Variable) or isinstance (arg_Var, Predicate)) and (":" in arg_Var.name):
+
+            pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (arg_Var, arg_Val, g.env)
+
+            g.env = do_retract ({}, Predicate ( pname, r_pattern), res=g.env)
+            g.env = do_assertz ({}, Clause ( Predicate(pname, a_pattern), location=g.location), res=g.env)
 
             return True
 
         # regular is/2 semantics
 
-        if isinstance(ques, Variable):
-            if ques.name != u'_':
-                g.env[ques.name] = ans  # Set variable
+        if isinstance(arg_Var, Variable):
+            if arg_Var.name != u'_':
+                g.env[arg_Var.name] = arg_Val  # Set variable
             return True
 
-        if ques != ans:
+        if arg_Var != arg_Val:
             return False
 
         return True
@@ -677,62 +705,12 @@ class PrologRuntime(object):
         # handle pseudo-variable assignment
         if (isinstance (arg_Var, Variable) or isinstance (arg_Var, Predicate)) and (":" in arg_Var.name):
 
-            parts = arg_Var.name.split(':')
-
-            v = parts[0]
-
-            if v[0].isupper():
-                if not v in g.env:
-                    raise PrologRuntimeError('set: unbound variable %s.' % v, g.location)
-                v = g.env[v]
-            else:
-                v = Predicate(v)
-
-            for part in parts[1:len(parts)-1]:
-                
-                subparts = part.split('|')
-
-                pattern = [v]
-                wildcard_found = False
-                for sp in subparts[1:]:
-                    if sp == '_':
-                        wildcard_found = True
-                        pattern.append('_1')
-                    else:
-                        pattern.append(Predicate(sp))
-
-                if not wildcard_found:
-                    pattern.append('_1')
-
-                solutions = self.search_predicate (subparts[0], pattern, env=g.env)
-                if len(solutions)<1:
-                    raise PrologRuntimeError(u'set: failed to match part "%s" of "%s".' % (part, unicode(arg_Var)), g.location)
-                v = solutions[0]['_1']
-
-            lastpart = parts[len(parts)-1]
-
-            subparts = lastpart.split('|')
-
-            r_pattern = [v]
-            a_pattern = [v]
-            wildcard_found = False
-            for sp in subparts[1:]:
-                if sp == '_':
-                    wildcard_found = True
-                    r_pattern.append(Variable('_'))
-                    a_pattern.append(arg_Val)
-                else:
-                    r_pattern.append(Predicate(sp))
-                    a_pattern.append(Predicate(sp))
-
-            if not wildcard_found:
-                r_pattern.append(Variable('_'))
-                a_pattern.append(arg_Val)
+            pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (arg_Var, arg_Val, g.env)
 
             # import pdb; pdb.set_trace()
 
-            g.env = do_retract ({}, Predicate ( subparts[0], r_pattern), res=g.env)
-            g.env = do_assertz ({}, Clause ( Predicate(subparts[0], a_pattern), location=g.location), res=g.env)
+            g.env = do_retract ({}, Predicate ( pname, r_pattern), res=g.env)
+            g.env = do_assertz ({}, Clause ( Predicate(pname, a_pattern), location=g.location), res=g.env)
 
             return True
 

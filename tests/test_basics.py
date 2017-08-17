@@ -282,6 +282,16 @@ class TestZamiaProlog (unittest.TestCase):
         logging.debug('solutions: %s' % repr(solutions))
         self.assertEqual (len(solutions), 0)
 
+    def test_unify_pseudo(self):
+
+        clause = self.parser.parse_line_clause_body(u'C is foo, assertz(mem(foo, bar)), if var(C:mem|bar) then C:mem|bar := 23 endif, X := C:mem|bar')
+        logging.debug(u'clause: %s' % clause)
+        # self.rt.set_trace(True)
+        solutions = self.rt.search(clause)
+        logging.debug('solutions: %s' % repr(solutions))
+        self.assertEqual (len(solutions), 1)
+        self.assertEqual (solutions[0]['X'].f, 23.0)
+
 if __name__ == "__main__":
 
     logging.basicConfig(level=logging.DEBUG)
