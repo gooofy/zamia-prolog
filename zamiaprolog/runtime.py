@@ -27,8 +27,6 @@
 # being satisfied, parent is another Goal which spawned this one
 # and which we will unify back to when this Goal is complete.
 
-from past.builtins import basestring
-
 import os
 import sys
 import logging
@@ -36,6 +34,7 @@ import codecs
 import re
 import copy
 
+from six                  import string_types
 from zamiaprolog.logic    import *
 from zamiaprolog.builtins import *
 from zamiaprolog.errors   import *
@@ -892,7 +891,7 @@ class PrologRuntime(object):
 
         mapped_args = []
         for arg in args:
-            if not isinstance(arg, basestring):
+            if not isinstance(arg, string_types):
                 mapped_args.append(arg)
                 continue
             if arg[0].isupper() or arg[0].startswith('_'):
