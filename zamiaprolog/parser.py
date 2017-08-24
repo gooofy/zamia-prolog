@@ -67,7 +67,8 @@ import codecs
 import re
 
 from copy                import copy
-from StringIO            import StringIO
+
+from six                 import StringIO, text_type
 
 from zamiaprolog.logic   import *
 from zamiaprolog.errors  import *
@@ -174,7 +175,7 @@ class PrologParser(object):
         return SourceLocation(self.prolog_fn, self.cur_line, self.cur_col)
 
     def next_c(self):
-        self.cur_c    = unicode(self.prolog_f.read(1))
+        self.cur_c    = text_type(self.prolog_f.read(1))
         self.cur_col += 1
 
         if self.cur_c == u'\n':
@@ -189,7 +190,7 @@ class PrologParser(object):
         # print '[', self.cur_c, ']',
 
     def peek_c(self):
-        peek_c = unicode(self.prolog_f.read(1))
+        peek_c = text_type(self.prolog_f.read(1))
         self.prolog_f.seek(-1,1)
         return peek_c
 
@@ -725,13 +726,13 @@ class PrologParser(object):
                 bindings = {}
                 if self.rt._unify (pred, {}, clause.head, bindings, clause.location, overwrite_vars = False):
                     if succeeded:
-                        self.report_error ("inline: %s: more than one matching pred found." % unicode(pred))
+                        self.report_error ("inline: %s: more than one matching pred found." % text_type(pred))
 
                     succeeded = clause
                     succ_bind = bindings
 
             if not succeeded:
-                self.report_error ("inline: %s: no matching pred found." % unicode(pred))
+                self.report_error ("inline: %s: no matching pred found." % text_type(pred))
 
             res = []
 
@@ -887,7 +888,7 @@ class PrologParser(object):
                 clauses = self.clause()
 
                 for clause in clauses:
-                    logging.debug(u"%7d / %7d (%3d%%) > %s" % (self.cur_line, self.linecnt, self.cur_line * 100 / self.linecnt, unicode(clause)))
+                    logging.debug(u"%7d / %7d (%3d%%) > %s" % (self.cur_line, self.linecnt, self.cur_line * 100 / self.linecnt, text_type(clause)))
 
                     self.db.store (module_name, clause)
 

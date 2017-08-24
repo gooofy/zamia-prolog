@@ -22,16 +22,17 @@
 #
 
 import os
+import sys
 import logging
 
 from copy           import deepcopy, copy
 from sqlalchemy     import create_engine
 from sqlalchemy.orm import sessionmaker
+from six            import python_2_unicode_compatible, text_type
+from zamiaprolog    import model
 
-import model
-
-from logic        import *
-from nltools.misc import limit_str
+from zamiaprolog.logic import *
+from nltools.misc      import limit_str
 
 class LogicDB(object):
 
@@ -76,7 +77,7 @@ class LogicDB(object):
                                head      = clause.head.name, 
                                prolog    = prolog_to_json(clause))
 
-        # print unicode(clause)
+        # print text_type(clause)
 
         self.session.add(ormc)
         self.invalidate_cache(clause.head.name)
@@ -135,7 +136,7 @@ class LogicDB(object):
                     if not isinstance(a, Predicate):
                         continue
                     if (a.name != ca) or (len(a.args) !=0):
-                        # logging.info('no match: %s vs %s %s' % (repr(ca), repr(a), unicode(clause)))
+                        # logging.info('no match: %s vs %s %s' % (repr(ca), repr(a), text_type(clause)))
                         match=False
                         break
             if not match:
@@ -144,6 +145,7 @@ class LogicDB(object):
 
         return res2
 
+@python_2_unicode_compatible
 class LogicDBOverlay(object):
 
     def __init__(self):
@@ -236,26 +238,23 @@ class LogicDBOverlay(object):
     def log_trace (self, indent):
         for k in sorted(self.d_assertz):
             for clause in self.d_assertz[k]:
-                logging.info(u"%s   [O] %s" % (indent, limit_str(unicode(clause), 100)))
+                logging.info(u"%s   [O] %s" % (indent, limit_str(text_type(clause), 100)))
         # FIXME: log retracted clauses?
 
-    def __unicode__ (self):
+    def __str__ (self):
         res = u'DBOvl('
         for k in sorted(self.d_assertz):
             for clause in self.d_assertz[k]:
-                res += u'+' + limit_str(unicode(clause), 40)
+                res += u'+' + limit_str(text_type(clause), 40)
         for k in sorted(self.d_retracted):
             for p in self.d_retracted[k]:
-                res += u'-' + limit_str(unicode(p), 40)
+                res += u'-' + limit_str(text_type(p), 40)
 
         res += u')'
         return res
 
-    def __str__(self):
-        return unicode(self).encode('utf8')
-
     def __repr__(self):
-        return unicode(self).encode('utf8')
+        return text_type(self).encode('utf8')
 
     def do_apply(self, module, db, commit=True):
 

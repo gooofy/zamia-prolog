@@ -27,6 +27,7 @@
 # being satisfied, parent is another Goal which spawned this one
 # and which we will unify back to when this Goal is complete.
 
+from past.builtins import basestring
 
 import os
 import sys
@@ -35,10 +36,10 @@ import codecs
 import re
 import copy
 
-from logic        import *
-from builtins     import *
-from errors       import *
-from nltools.misc import limit_str
+from zamiaprolog.logic    import *
+from zamiaprolog.builtins import *
+from zamiaprolog.errors   import *
+from nltools.misc         import limit_str
 
 def prolog_unary_plus  (a) : return NumberLiteral(a)
 def prolog_unary_minus (a) : return NumberLiteral(-a)
@@ -307,7 +308,7 @@ class PrologRuntime(object):
             return Predicate(term.name, args)
 
         if isinstance (term, ListLiteral):
-            return ListLiteral (map (lambda x: self.prolog_eval(x, env, location), term.l))
+            return ListLiteral (list(map (lambda x: self.prolog_eval(x, env, location), term.l)))
 
         if isinstance (term, Literal):
             return term

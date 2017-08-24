@@ -31,11 +31,11 @@ import copy
 
 from tzlocal import get_localzone # $ pip install tzlocal
 
-import model
+from zamiaprolog         import model
 
-from logic   import *
-from logicdb import LogicDBOverlay
-from errors  import *
+from zamiaprolog.logic   import *
+from zamiaprolog.logicdb import LogicDBOverlay
+from zamiaprolog.errors  import *
 
 PROLOG_LOGGER_NAME = 'prolog'
 prolog_logger = logging.getLogger(PROLOG_LOGGER_NAME)

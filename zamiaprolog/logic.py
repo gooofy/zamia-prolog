@@ -23,7 +23,10 @@
 
 import logging
 import json
-from errors import PrologError
+
+from six                import python_2_unicode_compatible, text_type
+
+from zamiaprolog.errors import PrologError
 
 class JSONLogic:
 
@@ -33,6 +36,7 @@ class JSONLogic:
     def to_dict(self):
         raise PrologError ("to_dict is not implemented, but should be!")
 
+@python_2_unicode_compatible
 class SourceLocation(JSONLogic):
 
     def __init__ (self, fn=None, line=None, col=None, json_dict=None):
@@ -46,10 +50,7 @@ class SourceLocation(JSONLogic):
             self.col  = col
 
     def __str__(self):
-        return unicode(self).encode('utf8')
-
-    def __unicode__(self):
-        return u'%s: line=%s, col=%s' % (self.fn, unicode(self.line), unicode(self.col))
+        return u'%s: line=%s, col=%s' % (self.fn, text_type(self.line), text_type(self.col))
 
     def __repr__(self):
         return 'SourceLocation(fn=%s, line=%d, col=%d)' % (self.fn, self.line, self.col)
@@ -57,14 +58,13 @@ class SourceLocation(JSONLogic):
     def to_dict(self):
         return {'pt': 'SourceLocation', 'fn': self.fn, 'line': self.line, 'col': self.col}
 
+@python_2_unicode_compatible
 class Literal(JSONLogic):
 
-    def __unicode__(self):
-        return "<LITERAL>"
+    def __str__(self):
+        return u"<LITERAL>"
 
-    def __str__ (self):
-        return "<LITERAL>"
-
+@python_2_unicode_compatible
 class StringLiteral(Literal):
 
     def __init__(self, s=None, json_dict=None):
@@ -98,11 +98,8 @@ class StringLiteral(Literal):
     def get_literal(self):
         return self.s
 
-    def __unicode__(self):
-        return u'"' + unicode(self.s.replace('"', '\\"')) + u'"'
-
     def __str__(self):
-        return unicode(self).encode('utf8')
+        return u'"' + text_type(self.s.replace('"', '\\"')) + u'"'
 
     def __repr__(self):
         return u'StringLiteral(' + repr(self.s) + ')'
@@ -113,6 +110,7 @@ class StringLiteral(Literal):
     def __hash__(self):
         return hash(self.s)
 
+@python_2_unicode_compatible
 class NumberLiteral(Literal):
 
     def __init__(self, f=None, json_dict=None):
@@ -121,11 +119,8 @@ class NumberLiteral(Literal):
         else:
             self.f = f
 
-    def __unicode__(self):
-        return unicode(self.f)
-
     def __str__(self):
-        return str(self.f)
+        return text_type(self.f)
 
     def __repr__(self):
         return repr(self.f)
@@ -169,6 +164,7 @@ class NumberLiteral(Literal):
     def __hash__(self):
         return hash(self.f)
 
+@python_2_unicode_compatible
 class ListLiteral(Literal):
 
     def __init__(self, l=None, json_dict=None):
@@ -194,11 +190,8 @@ class ListLiteral(Literal):
     def get_literal(self):
         return self.l
 
-    def __unicode__(self):
-        return u'[' + u','.join(map(lambda e: unicode(e), self.l)) + u']'
-
     def __str__(self):
-        return unicode(self).encode('utf8')
+        return u'[' + u','.join(map(lambda e: text_type(e), self.l)) + u']'
 
     def __repr__(self):
         return repr(self.l)
@@ -206,6 +199,7 @@ class ListLiteral(Literal):
     def to_dict(self):
         return {'pt': 'ListLiteral', 'l': self.l}
 
+@python_2_unicode_compatible
 class DictLiteral(Literal):
 
     def __init__(self, d=None, json_dict=None):
@@ -231,11 +225,8 @@ class DictLiteral(Literal):
     def get_literal(self):
         return self.d
 
-    def __unicode__(self):
-        return unicode(self.d)
-
     def __str__(self):
-        return str(self.d)
+        return text_type(self.d)
 
     def __repr__(self):
         return repr(self.d)
@@ -243,6 +234,7 @@ class DictLiteral(Literal):
     def to_dict(self):
         return {'pt': 'DictLiteral', 'd': self.d}
 
+@python_2_unicode_compatible
 class SetLiteral(Literal):
 
     def __init__(self, s=None, json_dict=None):
@@ -268,11 +260,8 @@ class SetLiteral(Literal):
     def get_literal(self):
         return self.s
 
-    def __unicode__(self):
-        return unicode(self.s)
-
     def __str__(self):
-        return str(self.s)
+        return text_type(self.s)
 
     def __repr__(self):
         return repr(self.s)
@@ -280,6 +269,7 @@ class SetLiteral(Literal):
     def to_dict(self):
         return {'pt': 'SetLiteral', 's': self.s}
 
+@python_2_unicode_compatible
 class Variable(JSONLogic):
 
     def __init__(self, name=None, json_dict=None):
@@ -292,9 +282,6 @@ class Variable(JSONLogic):
         return u'Variable(' + self.__unicode__() + u')'
 
     def __str__(self):
-        return self.name.encode('utf8')
-
-    def __unicode__(self):
         return self.name
 
     def __eq__(self, other):
@@ -306,6 +293,7 @@ class Variable(JSONLogic):
     def to_dict(self):
         return {'pt': 'Variable', 'name': self.name}
 
+@python_2_unicode_compatible
 class Predicate(JSONLogic):
 
     def __init__(self, name=None, args=None, json_dict=None):
@@ -319,9 +307,6 @@ class Predicate(JSONLogic):
             self.args  = args if args else []
   
     def __str__(self):
-        return unicode(self).encode('utf8')
-    
-    def __unicode__(self):
         if not self.args:
             return self.name
 
@@ -332,11 +317,11 @@ class Predicate(JSONLogic):
         # elif self.name == 'and':
         #     return u', '.join(map(unicode, self.args))
 
-        return u'%s(%s)' % (self.name, u', '.join(map(unicode, self.args)))
+        return u'%s(%s)' % (self.name, u', '.join(map(text_type, self.args)))
         #return '(' + self.name + ' ' + ' '.join( [str(arg) for arg in self.args]) + ')'
 
     def __repr__(self):
-        return u'Predicate(' + self.__unicode__() + ')'
+        return u'Predicate(' + text_type(self) + ')'
 
     def __eq__(self, other):
         return isinstance(other, Predicate) \
@@ -355,13 +340,14 @@ class Predicate(JSONLogic):
     def to_dict(self):
         return {'pt'  : 'Predicate', 
                 'name': self.name, 
-                'args': map(lambda a: a.to_dict(), self.args)
+                'args': list(map(lambda a: a.to_dict(), self.args))
                }
 
     def __hash__(self):
         # FIXME hash args?
-        return hash(self.name + u'/' + unicode(len(self.args)))
+        return hash(self.name + u'/' + text_type(len(self.args)))
 
+@python_2_unicode_compatible
 class Clause(JSONLogic):
 
     def __init__(self, head=None, body=None, location=None, json_dict=None):
@@ -375,15 +361,12 @@ class Clause(JSONLogic):
             self.location = location
 
     def __str__(self):
-        return unicode(self).encode('utf8')
-
-    def __unicode__(self):
         if self.body:
-            return u'%s :- %s.' % (unicode(self.head), unicode(self.body))
-        return unicode(self.head) + '.'
+            return u'%s :- %s.' % (text_type(self.head), text_type(self.body))
+        return text_type(self.head) + '.'
 
     def __repr__(self):
-        return u'Clause(' + unicode(self) + u')'
+        return u'Clause(' + text_type(self) + u')'
 
     def __eq__(self, other):
         return (isinstance(other, Clause)
@@ -397,6 +380,7 @@ class Clause(JSONLogic):
                 'location': self.location.to_dict(),
                }
 
+@python_2_unicode_compatible
 class MacroCall(JSONLogic):
 
     def __init__(self, name=None, pred=None, location=None, json_dict=None):
@@ -410,10 +394,7 @@ class MacroCall(JSONLogic):
             self.location = location
 
     def __str__(self):
-        return unicode(self).encode('utf8')
-
-    def __unicode__(self):
-        return u'@' + unicode(self.name) + u':' + unicode(self.pred)
+        return u'@' + text_type(self.name) + u':' + text_type(self.pred)
 
     def __repr__(self):
         return 'MacroCall(%s, %s)' % (self.name, self.pred)
@@ -435,7 +416,11 @@ class PrologJSONEncoder(json.JSONEncoder):
         if isinstance (o, JSONLogic):
             return o.to_dict()
 
-        return json.JSONEncoder.default(self, o)
+        try:
+            return json.JSONEncoder.default(self, o)
+        except TypeError:
+            import pdb; pdb.set_trace()
+
 
 _prolog_json_encoder = PrologJSONEncoder()
 
@@ -444,7 +429,6 @@ def prolog_to_json(pl):
 
 def _prolog_from_json(o):
 
-    # import pdb; pdb.set_trace()
 
     if o == None:
         return None
