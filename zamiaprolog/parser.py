@@ -669,6 +669,12 @@ class PrologParser(object):
                 return a
             return bindings[a.name]
 
+        if isinstance (a, ListLiteral):
+            rl = []
+            for i in a.l:
+                rl.append(self._apply_bindings (i, bindings))
+            return ListLiteral(rl)
+
         if isinstance (a, Literal):
             return a
 
