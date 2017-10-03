@@ -45,7 +45,7 @@ class LogicDB(object):
         self.cache = {}
 
     def commit(self):
-        logging.info("commit.")
+        logging.debug("commit.")
         self.session.commit()
 
     def clear_module(self, module, commit=True):
