@@ -353,7 +353,12 @@ def build_predicate(name, args):
     mapped_args = []
     for arg in args:
         if not isinstance(arg, string_types):
-            mapped_args.append(arg)
+            if isinstance (arg, int):
+                mapped_args.append(NumberLiteral(arg))
+            elif isinstance (arg, float):
+                mapped_args.append(NumberLiteral(arg))
+            else:
+                mapped_args.append(arg)
             continue
         if arg[0].isupper() or arg[0].startswith('_'):
             mapped_args.append(Variable(arg))
