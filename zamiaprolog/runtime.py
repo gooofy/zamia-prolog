@@ -889,17 +889,7 @@ class PrologRuntime(object):
         if not location:
             location = SourceLocation('<input>', 0, 0)
 
-        mapped_args = []
-        for arg in args:
-            if not isinstance(arg, string_types):
-                mapped_args.append(arg)
-                continue
-            if arg[0].isupper() or arg[0].startswith('_'):
-                mapped_args.append(Variable(arg))
-            else:
-                mapped_args.append(Predicate(arg))
-
-        solutions = self.search(Clause(body=Predicate(name, mapped_args), location=location), env=env)
+        solutions = self.search(Clause(body=build_predicate(name, args), location=location), env=env)
 
         return solutions
 

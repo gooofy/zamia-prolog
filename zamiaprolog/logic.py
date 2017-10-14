@@ -24,7 +24,7 @@
 import logging
 import json
 
-from six                import python_2_unicode_compatible, text_type
+from six                import python_2_unicode_compatible, text_type, string_types
 
 from zamiaprolog.errors import PrologError
 
@@ -346,6 +346,20 @@ class Predicate(JSONLogic):
     def __hash__(self):
         # FIXME hash args?
         return hash(self.name + u'/' + text_type(len(self.args)))
+
+# helper function
+
+def build_predicate(name, args):
+    mapped_args = []
+    for arg in args:
+        if not isinstance(arg, string_types):
+            mapped_args.append(arg)
+            continue
+        if arg[0].isupper() or arg[0].startswith('_'):
+            mapped_args.append(Variable(arg))
+        else:
+            mapped_args.append(Predicate(arg))
+    return Predicate (name, mapped_args)
 
 @python_2_unicode_compatible
 class Clause(JSONLogic):
