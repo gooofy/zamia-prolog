@@ -33,12 +33,15 @@ import logging
 import codecs
 import re
 import copy
+import time
 
 from six                  import string_types
 from zamiaprolog.logic    import *
 from zamiaprolog.builtins import *
 from zamiaprolog.errors   import *
 from nltools.misc         import limit_str
+
+SLOW_QUERY_TS = 1.0
 
 def prolog_unary_plus  (a) : return NumberLiteral(a)
 def prolog_unary_minus (a) : return NumberLiteral(-a)
@@ -723,21 +726,23 @@ class PrologRuntime(object):
 
         return True
 
-    def search (self, clause, env={}):
+    def search (self, a_clause, env={}):
 
-        if clause.body is None:
+        if a_clause.body is None:
             return [{}]
 
-        if isinstance (clause.body, Predicate):
-            if clause.body.name == 'and':
-                terms = clause.body.args
+        if isinstance (a_clause.body, Predicate):
+            if a_clause.body.name == 'and':
+                terms = a_clause.body.args
             else:
-                terms = [ clause.body ]
+                terms = [ a_clause.body ]
         else:
-            raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(clause))
+            raise PrologRuntimeError (u'search: expected predicate in body, got "%s" !' % unicode(a_clause))
 
-        stack     = [ PrologGoal (clause.head, terms, env=copy.copy(env), location=clause.location) ]
+        stack     = [ PrologGoal (a_clause.head, terms, env=copy.copy(env), location=a_clause.location) ]
         solutions = []
+
+        ts_start  = time.time()
 
         while stack :
             g = stack.pop()                         # Next goal to consider
@@ -839,7 +844,7 @@ class PrologRuntime(object):
 
             static_filter = {}
             for i, a in enumerate(pred.args):
-                ca = self.prolog_eval(a, g.env, clause.location)
+                ca = self.prolog_eval(a, g.env, g.location)
                 if isinstance(ca, Predicate) and len(ca.args)==0:
                     static_filter[i] = ca.name
             # if len(static_filter)>0:
@@ -878,6 +883,12 @@ class PrologRuntime(object):
                 # make sure we explicitly fail for proper negation support
                 self._finish_goal (g, False, stack, solutions)
 
+        # profiling 
+        ts_delay = time.time() - ts_start
+        # logging.debug (u'runtime: search for %s took %fs.' % (unicode(a_clause), ts_delay))
+        if ts_delay>SLOW_QUERY_TS:
+            logging.warn (u'runtime: SLOW search for %s took %fs.' % (unicode(a_clause), ts_delay))
+            # import pdb; pdb.set_trace()
 
         return solutions
 

@@ -24,6 +24,7 @@
 import os
 import sys
 import logging
+import time
 
 from copy           import deepcopy, copy
 from sqlalchemy     import create_engine
@@ -98,6 +99,8 @@ class LogicDB(object):
     # use arity=-1 to disable filtering
     def lookup (self, name, arity, overlay=None, sf=None):
 
+        ts_start = time.time()
+
         # if name == 'lang':
         #     import pdb; pdb.set_trace()
 
@@ -142,6 +145,9 @@ class LogicDB(object):
             if not match:
                 continue
             res2.append(clause)
+
+        ts_delay = time.time() - ts_start
+        # logging.debug (u'db lookup for %s/%d took %fs' % (name, arity, ts_delay))
 
         return res2
 

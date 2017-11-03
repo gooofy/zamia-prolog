@@ -305,7 +305,7 @@ class Predicate(JSONLogic):
         else:
             self.name  = name
             self.args  = args if args else []
-  
+
     def __str__(self):
         if not self.args:
             return self.name
@@ -447,7 +447,6 @@ def prolog_to_json(pl):
     return _prolog_json_encoder.encode(pl)
 
 def _prolog_from_json(o):
-
 
     if o == None:
         return None
