@@ -9,5 +9,5 @@ upload:
 	twine upload dist/*
 
 clean:
-	rm -rf build dist
+	rm -rf build dist foo.db zamia_prolog.egg-info
 
