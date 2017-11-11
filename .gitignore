@@ -9,3 +9,6 @@ data
 *.log
 TODO
 NOTES
+foo.db
+tests/zp_profile.py
+tests/zp_stats
