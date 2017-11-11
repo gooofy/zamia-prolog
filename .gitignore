@@ -12,3 +12,5 @@ NOTES
 foo.db
 tests/zp_profile.py
 tests/zp_stats
+dist
+zamia_prolog.egg-info
