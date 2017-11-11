@@ -32,15 +32,11 @@ UNITTEST_MODULE = 'unittests'
 class TestBuiltins (unittest.TestCase):
 
     def setUp(self):
-
-        config = misc.load_config('.airc')
-
         #
         # db, store
         #
 
-        db_url = config.get('db', 'url')
-        # db_url = 'sqlite:///tmp/foo.db'
+        db_url = 'sqlite:///foo.db'
 
         # setup compiler + environment
 
@@ -49,6 +45,9 @@ class TestBuiltins (unittest.TestCase):
         self.rt     = PrologRuntime(self.db)
 
         self.db.clear_module(UNITTEST_MODULE)
+
+    def tearDown(self):
+        self.db.close()
 
     # @unittest.skip("temporarily disabled")
     def test_hanoi1(self):
@@ -283,7 +282,6 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions), 1)
         self.assertEqual (solutions[0]['X'].name, 'qIsFamiliar')
 
-
     # @unittest.skip("temporarily disabled")
     def test_retract(self):
 
@@ -293,6 +291,7 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions), 1)
         self.assertEqual (solutions[0]['X'].name, 'y')
 
+    # @unittest.skip("temporarily disabled")
     def test_retract_db(self):
 
         clause = self.parser.parse_line_clause_body('I is ias1, assertz(frame (I, a, x))')
@@ -323,6 +322,7 @@ class TestBuiltins (unittest.TestCase):
         s2s = self.rt.search(clause)
         self.assertEqual (len(s2s), 0)
 
+    # @unittest.skip("temporarily disabled")
     def test_setz(self):
 
         clause = self.parser.parse_line_clause_body('assertz(frame (ias1, a, x)), assertz(frame (ias1, a, y)), setz(frame (ias1, a, _), z), frame (ias1, a, X)')
@@ -331,6 +331,7 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions), 1)
         self.assertEqual (solutions[0]['X'].name, 'z')
 
+    # @unittest.skip("temporarily disabled")
     def test_setz_multi(self):
 
         # self.rt.set_trace(True)
@@ -349,11 +350,15 @@ class TestBuiltins (unittest.TestCase):
     # @unittest.skip("temporarily disabled")
     def test_gensym(self):
 
+        logging.debug ('test_gensym...')
+
         clause = self.parser.parse_line_clause_body('gensym(foo, I), gensym(foo, J)')
         solutions = self.rt.search(clause)
         logging.debug(repr(solutions))
         self.assertEqual (len(solutions), 1)
         self.assertNotEqual (solutions[0]['I'].name, solutions[0]['J'].name)
+
+        logging.debug ('test_gensym... done.')
 
     # @unittest.skip("temporarily disabled")
     def test_sets(self):
@@ -375,7 +380,6 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (len(solutions[0]), 1)
         self.assertEqual (len(solutions[0]['S'].s), 3)
 
-
     # @unittest.skip("temporarily disabled")
     def test_eval_functions(self):
 
@@ -384,7 +388,8 @@ class TestBuiltins (unittest.TestCase):
         logging.debug(repr(solutions))
         self.assertEqual (len(solutions), 1)
         self.assertEqual (len(solutions[0]['Y'].l), 2)
-
+ 
+    # @unittest.skip("temporarily disabled")
     def test_set(self):
 
         clause = self.parser.parse_line_clause_body('set(X, 23), set(X, 42), set(Y, 23), Z := Y * 2')
@@ -395,6 +400,7 @@ class TestBuiltins (unittest.TestCase):
         self.assertEqual (solutions[0]['Y'].f, 23)
         self.assertEqual (solutions[0]['Z'].f, 46)
 
+    # @unittest.skip("temporarily disabled")
     def test_set_pseudo(self):
 
         clause = self.parser.parse_line_clause_body('assertz(foo(bar, 23)), set(bar:foo, 42), foo(bar, X), Z := bar:foo')

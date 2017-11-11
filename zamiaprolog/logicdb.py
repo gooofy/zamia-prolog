@@ -49,6 +49,11 @@ class LogicDB(object):
         logging.debug("commit.")
         self.session.commit()
 
+    def close (self, do_commit=True):
+        if do_commit:
+            self.commit()
+        self.session.close()
+
     def clear_module(self, module, commit=True):
 
         logging.info("Clearing %s ..." % module)
