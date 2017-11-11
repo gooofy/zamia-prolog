@@ -80,14 +80,11 @@ class TestEmbeddings (unittest.TestCase):
 
     def setUp(self):
 
-        config = misc.load_config('.airc')
-
         #
         # db, store
         #
 
-        db_url = config.get('db', 'url')
-        # db_url = 'sqlite:///tmp/foo.db'
+        db_url = 'sqlite:///foo.db'
 
         # setup compiler + environment
 
@@ -98,6 +95,9 @@ class TestEmbeddings (unittest.TestCase):
         # self.rt.set_trace(True)
 
         self.db.clear_module(UNITTEST_MODULE)
+
+    def tearDown(self):
+        self.db.close()
 
     #@unittest.skip("temporarily disabled")
     def test_custom_builtins(self):

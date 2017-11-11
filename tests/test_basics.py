@@ -35,14 +35,11 @@ class TestZamiaProlog (unittest.TestCase):
 
     def setUp(self):
 
-        config = misc.load_config('.airc')
-
         #
         # db, store
         #
 
-        db_url = config.get('db', 'url')
-        # db_url = 'sqlite:///tmp/foo.db'
+        db_url = 'sqlite:///foo.db'
 
         # setup compiler + environment
 
@@ -51,6 +48,9 @@ class TestZamiaProlog (unittest.TestCase):
         self.rt     = PrologRuntime(self.db)
 
         self.db.clear_module(UNITTEST_MODULE)
+
+    def tearDown(self):
+        self.db.close()
 
     # @unittest.skip("temporarily disabled")
     def test_parser(self):

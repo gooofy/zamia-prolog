@@ -34,14 +34,11 @@ class TestNegation (unittest.TestCase):
 
     def setUp(self):
 
-        config = misc.load_config('.airc')
-
         #
         # db, store
         #
 
-        db_url = config.get('db', 'url')
-        # db_url = 'sqlite:///tmp/foo.db'
+        db_url = 'sqlite:///foo.db'
 
         # setup compiler + environment
 
@@ -52,6 +49,9 @@ class TestNegation (unittest.TestCase):
         self.db.clear_module(UNITTEST_MODULE)
 
         self.rt.set_trace(True)
+
+    def tearDown(self):
+        self.db.close()
 
     # @unittest.skip("temporarily disabled")
     def test_not_succ(self):
