@@ -450,7 +450,7 @@ class PrologRuntime(object):
                 if ':' in dest.name:
                     # import pdb; pdb.set_trace()
 
-                    pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (dest, self.prolog_eval(src, srcEnv, location), destEnv)
+                    pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (dest, self.prolog_eval(src, srcEnv, location), destEnv, location)
 
                     ovl = destEnv.get(ASSERT_OVERLAY_VAR_NAME)
                     if ovl is None:
@@ -603,7 +603,7 @@ class PrologRuntime(object):
 
         solution[ASSERT_OVERLAY_VAR_NAME].do_apply(module, self.db, commit=True)
 
-    def _compute_retract_assert_patterns (self, arg_Var, arg_Val, env):
+    def _compute_retract_assert_patterns (self, arg_Var, arg_Val, env, location):
 
         parts = arg_Var.name.split(':')
 
@@ -611,7 +611,7 @@ class PrologRuntime(object):
 
         if v[0].isupper():
             if not v in env:
-                raise PrologRuntimeError('%s: unbound variable %s.' % (arg_Var.name, v), g.location)
+                raise PrologRuntimeError('%s: unbound variable %s.' % (arg_Var.name, v), location)
             v = env[v]
         else:
             v = Predicate(v)
@@ -634,7 +634,7 @@ class PrologRuntime(object):
 
             solutions = self.search_predicate (subparts[0], pattern, env=env)
             if len(solutions)<1:
-                raise PrologRuntimeError(u'is: failed to match part "%s" of "%s".' % (part, unicode(arg_Var)), g.location)
+                raise PrologRuntimeError(u'is: failed to match part "%s" of "%s".' % (part, unicode(arg_Var)), location)
             v = solutions[0]['_1']
 
         lastpart = parts[len(parts)-1]
@@ -674,7 +674,7 @@ class PrologRuntime(object):
         # handle pseudo-variable assignment
         if (isinstance (arg_Var, Variable) or isinstance (arg_Var, Predicate)) and (":" in arg_Var.name):
 
-            pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (arg_Var, arg_Val, g.env)
+            pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (arg_Var, arg_Val, g.env, g.location)
 
             g.env = do_retract ({}, Predicate ( pname, r_pattern), res=g.env)
             g.env = do_assertz ({}, Clause ( Predicate(pname, a_pattern), location=g.location), res=g.env)
@@ -708,7 +708,7 @@ class PrologRuntime(object):
         # handle pseudo-variable assignment
         if (isinstance (arg_Var, Variable) or isinstance (arg_Var, Predicate)) and (":" in arg_Var.name):
 
-            pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (arg_Var, arg_Val, g.env)
+            pname, r_pattern, a_pattern = self._compute_retract_assert_patterns (arg_Var, arg_Val, g.env, g.location)
 
             # import pdb; pdb.set_trace()
 
