@@ -263,10 +263,12 @@ Pseudo-Variables/-Predicates
 This is an extension to standard prolog syntax found in Zamia-Prolog to make "variable" setting and access
 easier:
 ```
-C:user        -> user (C, X)
-C:user:name   -> user (C, X), name (X, Y)
-self:name     -> name (self, X)
-self:label|de -> label (self, de, X)
+C:user                   -> user (C, X)
+C:user:name              -> user (C, X), name (X, Y)
+self:name                -> name (self, X)
+self:label|de            -> label (self, de, X)
+C:mem|f1ent:rdfsLabel|en -> mem (C, f1ent, X), rdfsLabel(X, en, Y).
+
 ```
 this works for evaluation as well as setting/asserting (left-hand and right-hand side of expressions).
 
