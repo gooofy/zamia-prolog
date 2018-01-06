@@ -163,10 +163,11 @@ CSTATE_BODY    = 2
 
 class PrologParser(object):
 
-    def __init__(self, db):
+    def __init__(self, db, do_inline = True):
         # compile-time built-in predicates
         self.directives = {}
         self.db         = db 
+        self.do_inline  = do_inline
     
     def report_error(self, s):
         raise PrologError ("%s: error in line %d col %d: %s" % (self.prolog_fn, self.cur_line, self.cur_col, s))
@@ -715,6 +716,9 @@ class PrologParser(object):
             self.next_sym()
 
             pred = self.relation()
+
+            if not self.do_inline:
+                return [ Predicate ('inline', [pred]) ]
 
             # if self.cur_line == 38:
             # import pdb; pdb.set_trace()
